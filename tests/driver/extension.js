@@ -40,6 +40,11 @@ export default class TestDriver extends Extension {
         };
         assert(ext?._tiler?._running, 'Extension loads and tiler starts');
         assert(ext._toggle.title === 'NexTile' && !!ext._toggle.menu, 'Native Quick Settings toggle with menu');
+        if (GLib.getenv('NEXTILE_TEST_ONLY') === 'search') {
+            await this._searchTests(ext, assert);
+            this._finish(log.join('\n'));
+            return;
+        }
         if (GLib.getenv('NEXTILE_TEST_ONLY') === 'terminal') {
             const background = new Gio.Settings({schema_id: 'org.gnome.desktop.background'});
             background.set_string('picture-options', 'none');
@@ -54,9 +59,9 @@ export default class TestDriver extends Extension {
             await this._searchTests(ext, assert);
             await this._terminalTests(assert);
         }
-        const spawn = async (name, large = false) => {
+        const spawn = async (name, mode = null) => {
             Gio.Subprocess.new(['python3', GLib.getenv('NEXTILE_TEST_FIXTURE'), name,
-                ...(large ? ['large'] : [])], Gio.SubprocessFlags.NONE);
+                ...(mode ? [mode === true ? 'large' : mode] : [])], Gio.SubprocessFlags.NONE);
             await delay(1000);
             const window = global.get_window_actors().map(actor => actor.meta_window)
                 .find(win => win.title === name);
@@ -114,6 +119,36 @@ export default class TestDriver extends Extension {
         b.unmaximize(Meta.MaximizeFlags.BOTH);
         await delay(600);
         assert(rect(a).width === a2.width, 'Manual unmaximize rejoins tiling');
+        for (const mode of ['maximized', 'late-maximized', 'late-restore']) {
+            const window = await spawn(`NexTile ${mode}`, mode);
+            const isTiled = () => {
+                const group = ext._tiler._findGroup(window);
+                const target = group?.layout.rectangles(ext._tiler._area(group), ext._settings.get_int('gap')).get(window);
+                return target && !window.get_maximized() && !window.minimized && !ext._tiler.isFloating(window) &&
+                    ['x', 'y', 'width', 'height'].every(key => Math.abs(rect(window)[key] - target[key]) <= 2);
+            };
+            const tiled = isTiled();
+            assert(tiled, `New ${mode} window opens normally and tiles without a mouse move` + (tiled ? '' :
+                ` ${JSON.stringify({frame: rect(window), target: ext._tiler._targets.get(window), max: window.get_maximized(),
+                    floating: ext._tiler.isFloating(window), excluded: ext._tiler._maximized.has(window),
+                    opening: ext._tiler._opening.get(window), resize: window.allows_resize(), move: window.allows_move()})}`));
+            if (mode === 'late-restore') {
+                await delay(500);
+                window.maximize(Meta.MaximizeFlags.BOTH);
+                await delay(600);
+                assert(!!window.get_maximized(), 'User can still maximize a window after startup');
+                Gio.Subprocess.new(['kill', '-USR1', String(window.get_pid())], Gio.SubprocessFlags.NONE);
+                await delay(850);
+                assert(isTiled(), 'Unmaximize with a delayed client resize retiles without mouse interaction');
+                window.minimize();
+                await delay(400);
+                window.unminimize();
+                await delay(600);
+                assert(isTiled(), 'Restoring a previously maximized, minimized window immediately retiles');
+            }
+            window.delete(global.get_current_time());
+            await delay(400);
+        }
         const large = await spawn('NexTile minimum size', true);
         await delay(600);
         assert(ext._tiler.isFloating(large), 'Client minimum size floats incompatible window');
@@ -225,6 +260,8 @@ export default class TestDriver extends Extension {
         await delay(600);
         assert(!tiler._running && tiler._signals.length === 0 && tiler._windows.size === 0 && !ext._toggle,
             'Extension disable destroys UI and all owned resources');
+        assert(tiler._opening.size === 0 && tiler._targets.size === 0,
+            'Disable clears startup tracking and expected window geometry');
         assert(appearance._destroyed && !appearance._source && appearance._signals.length === 0 &&
             appearance._windowSignals.size === 0 && !Main.panel.has_style_class_name('nextile-panel') &&
             Main.panel.statusArea.dateMenu.container.get_parent() === Main.panel._centerBox &&
@@ -234,8 +271,10 @@ export default class TestDriver extends Extension {
         await Main.extensionManager.enableExtension('nextile@erikleblansch.github.io');
         await delay(600);
         assert(ext._tiler._running, 'Extension can be enabled again');
-        a.delete(global.get_current_time());
-        b.delete(global.get_current_time());
+        if (!GLib.getenv('NEXTILE_TEST_KEEP_WINDOWS')) {
+            a.delete(global.get_current_time());
+            b.delete(global.get_current_time());
+        }
         this._finish(log.join('\n'));
     }
 
@@ -374,6 +413,7 @@ export default class TestDriver extends Extension {
     }
 
     async _searchTests(ext, assert) {
+        new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).set_boolean('enable-animations', true);
         const search = ext._search;
         const background = new Gio.Settings({schema_id: 'org.gnome.desktop.background'});
         background.set_string('picture-options', 'none');
@@ -471,9 +511,17 @@ export default class TestDriver extends Extension {
             .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
         pointer.notify_absolute_motion(GLib.get_monotonic_time(), monitor.x + monitor.width / 2,
             monitor.y + Main.panel.height + 28);
+        const circle = ribbon._buttons[2];
+        const samples = [circle.get_transformed_position()[0]];
         pointer.notify_discrete_scroll(GLib.get_monotonic_time(), Clutter.ScrollDirection.DOWN,
             Clutter.ScrollSource.WHEEL);
-        await delay(700);
+        for (let frame = 0; frame < 44; frame++) {
+            await delay(16);
+            samples.push(circle.get_transformed_position()[0]);
+        }
+        const forwardSmooth = new Set(samples).size > 3 && samples.every((x, i) => i === 0 || x <= samples[i - 1] + 1);
+        assert(forwardSmooth, 'Search neighbors slide forward without reversing direction between animation frames' +
+            (forwardSmooth ? '' : ` (${samples.join(',')})`));
         assert(global.workspace_manager.get_active_workspace_index() === 1 && search._open &&
             search._entry.get_text() === 'zoektest' && search._entry.clutter_text.has_key_focus(),
         'Real mouse wheel changes workspace while retaining search and focus');
@@ -483,6 +531,18 @@ export default class TestDriver extends Extension {
             leftX + ribbon._buttons[0].width <= surfaceX - 6 && rightX >= surfaceX + search._surface.width + 6 &&
             Math.abs(search._surface.x + search._surface.width / 2 - monitor.x - monitor.width / 2) < 1,
         'Workspace scrolling keeps search centered and moves the other circles around it');
+        const reverse = [circle.get_transformed_position()[0]];
+        pointer.notify_discrete_scroll(GLib.get_monotonic_time(), Clutter.ScrollDirection.UP, Clutter.ScrollSource.WHEEL);
+        for (let frame = 0; frame < 44; frame++) {
+            await delay(16);
+            reverse.push(circle.get_transformed_position()[0]);
+        }
+        const backwardSmooth = global.workspace_manager.get_active_workspace_index() === 0 && new Set(reverse).size > 3 &&
+            reverse.every((x, i) => i === 0 || x >= reverse[i - 1] - 1);
+        assert(backwardSmooth, 'Search neighbors also slide backward without bouncing' +
+            (backwardSmooth ? '' : ` (${reverse.join(',')})`));
+        pointer.notify_discrete_scroll(GLib.get_monotonic_time(), Clutter.ScrollDirection.DOWN, Clutter.ScrollSource.WHEEL);
+        await delay(700);
         await press(Clutter.KEY_Return);
         await delay(1000);
         const launched = global.get_window_actors().map(actor => actor.meta_window)
@@ -598,10 +658,17 @@ export default class TestDriver extends Extension {
         const [, white] = Cogl.Color.from_string('#ffffff');
         const compositorBackground = Main.layoutManager._bgManagers[Main.layoutManager.primaryIndex]
             .backgroundActor.content.background;
+        let backgroundChanges = 0;
+        const backgroundId = compositorBackground.connect('changed', () => backgroundChanges++);
         compositorBackground.set_color(white);
-        await delay(1200);
+        // Compositor readback can finish later under parallel nested sessions.
+        // Wait for the event-driven sample; do not trigger a sample ourselves.
+        for (let attempt = 0; attempt < 50 && !appearance._inks.every(ink => ink === 'dark'); attempt++)
+            await delay(50);
+        compositorBackground.disconnect(backgroundId);
         assert(appearance._inks.every(ink => ink === 'dark'),
-            'Compositor background updates trigger contrast without a settings change');
+            'Compositor background updates trigger contrast without a settings change' +
+            (appearance._inks.every(ink => ink === 'dark') ? '' : ` (ink=${appearance._inks}, pending=${appearance._source}, busy=${appearance._busy}, changed=${backgroundChanges}, tracked=${appearance._backgroundSignals.some(([obj]) => obj === compositorBackground)}, sample=${appearance._ribbon._sample?.values[100]}, current=${Main.layoutManager._bgManagers[Main.layoutManager.primaryIndex].backgroundActor.content.background === compositorBackground})`));
         const wallpaper = `${GLib.getenv('NEXTILE_TEST_RESULT')}.svg`;
         GLib.file_set_contents(wallpaper, '<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><path fill="white" d="M0 0h960v1080H0z"/><path fill="black" d="M960 0h960v1080H960z"/></svg>');
         background.set_string('picture-uri', Gio.File.new_for_path(wallpaper).get_uri());

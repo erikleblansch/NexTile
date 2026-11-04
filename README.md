@@ -59,7 +59,7 @@ Sleep de titelbalk van een venster naar een andere tegel. De overgebleven venste
 
 Sleep de **grens tussen tegels** om beide kanten samen te vergroten of verkleinen. De grens licht op onder de muis en blijft ook met vensterafstand nul grijpbaar. **Escape** herstelt de verhouding van vóór het slepen. Vergroten via een gewone gedeelde vensterrand past dezelfde splitsing aan. Verhoudingen blijven behouden tot opnieuw indelen of het uitschakelen van tegelen. Als een app de gevraagde maat weigert, wordt de vorige verhouding hersteld. Laat een venster zweven voor vrije plaatsing.
 
-Elke combinatie van scherm en werkruimte heeft een eigen indeling. Staat GNOME ingesteld op werkruimtes alleen op het hoofdscherm, dan behouden de andere schermen één gedeelde indeling. Minimaliseren en fullscreen maken tijdelijk ruimte vrij; terugkeren voegt het venster opnieuw toe. Handmatig maximaliseren wordt gerespecteerd. Bij de eerste inschakeling worden bestaande normale vensters, ook gemaximaliseerde, meegenomen.
+Elke combinatie van scherm en werkruimte heeft een eigen indeling. Staat GNOME ingesteld op werkruimtes alleen op het hoofdscherm, dan behouden de andere schermen één gedeelde indeling. Minimaliseren en fullscreen maken tijdelijk ruimte vrij; terugkeren voegt het venster opnieuw toe. Nieuwe normale vensters worden bij het openen uit de gemaximaliseerde stand gehaald en direct betegeld. NexTile vangt ook apps op die hun opgeslagen maximale grootte in de eerste seconde na het tegelen terugzetten. Later handmatig maximaliseren wordt gerespecteerd; terugzetten naar de normale grootte of terughalen na minimaliseren deelt het venster opnieuw in, ook als de app zijn maat vertraagd aanpast. Bij de eerste inschakeling worden bestaande normale vensters, ook gemaximaliseerde, meegenomen.
 
 Dialoogvensters, vaste venstermaten en hulppanelen blijven vrij. Vensters op alle werkruimtes blijven eveneens vrij, behalve op schermen met een gedeelde indeling. Als een app niet in een tegel past door zijn minimumafmetingen, wordt hij na een korte controle automatisch zwevend. De kleinste aangeboden tegel is 120 × 80 logische pixels. Zwevende vensters kunnen bewust boven tegels liggen. Hun status geldt voor de huidige inschakelperiode; de instellingen worden permanent opgeslagen.
 
@@ -67,7 +67,7 @@ Dialoogvensters, vaste venstermaten en hulppanelen blijven vrij. Vensters op all
 
 De balk is 36 logische pixels hoog. De datum en tijd staan links; klikken opent de gewone GNOME-kalender. In het midden staan genummerde rondjes van 24 pixels. De actieve werkruimte is een pil van 48 pixels breed, precies in het midden van het scherm.
 
-Klik op een nummer om die werkruimte te openen. Klik op het actieve nummer voor het Activiteitenoverzicht. Scrollen over de indicator wisselt van werkruimte. Bij wisselen schuift de rij vloeiend mee en verandert het rondje in een pil. Touchpadbewegingen volgen de door GNOME aangeleverde voortgang; directe wisselingen krijgen een korte, uitlopende animatie. De normale GNOME-instelling voor verminderde animaties wordt gerespecteerd.
+Klik op een nummer om die werkruimte te openen. Klik op het actieve nummer voor het Activiteitenoverzicht. Scrollen over de indicator wisselt van werkruimte. Bij wisselen schuift de rij vloeiend mee en verandert het rondje in een pil. Ook met de zoekbalk geopend blijven de rondjes in één richting bewegen, zonder tussentijdse terugslag. Touchpadbewegingen volgen de door GNOME aangeleverde voortgang; directe wisselingen krijgen een korte, uitlopende animatie. De normale GNOME-instelling voor verminderde animaties wordt gerespecteerd.
 
 Het aantal knoppen volgt GNOME, ook bij dynamisch toegevoegde of verwijderde werkruimtes. Lange rijen vervagen aan de randen en worden afgeknipt, zodat de klok en systeemknoppen hun plek houden. Ook de eerste en laatste actieve werkruimte blijven gecentreerd.
 
@@ -128,7 +128,7 @@ Zie [de testresultaten](docs/VALIDATION.md) voor de daadwerkelijk gecontroleerde
 - Een enkele controle na 250 ms vangt minimumafmetingen van apps op.
 - De bovenbalk bundelt kleurmetingen gedurende 450 ms; op een stabiele desktop draait hiervoor geen timer.
 - Zoeken bundelt toetsaanslagen gedurende 150 ms. Een gesloten zoekmodus heeft geen zoektimer; verouderde asynchrone resultaten worden genegeerd.
-- Alleen gewijzigde geometrie wordt aan Mutter doorgegeven. Bij verplaatsen wacht de indeling op het loslaten; bij vergroten/verkleinen volgen aangrenzende tegels tijdens het slepen.
+- Alleen gewijzigde geometrie wordt aan Mutter doorgegeven. Vertraagde maatwijzigingen van apps worden via venstersignalen opnieuw met de tegelmaat vergeleken. Bij verplaatsen wacht de indeling op het loslaten; bij vergroten/verkleinen volgen aangrenzende tegels tijdens het slepen.
 - Uitschakelen verwijdert alle eigen signalen, timers en menuonderdelen. Herstel respecteert de huidige werkruimte en houdt vensters binnen het huidige scherm.
 - Geen eigen achtergrondservice, telemetrie of shellcommando's. Zoekopdrachten gaan naar de ingeschakelde GNOME-zoekproviders; die kunnen hun eigen apps of diensten activeren, net als in het Activiteitenoverzicht.
 

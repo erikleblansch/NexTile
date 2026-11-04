@@ -1,0 +1,65 @@
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: GTK window NexTile A mapped
+PASS: First window fills work area with outer gap
+PASS: GTK window NexTile B mapped
+PASS: Second window halves largest tile
+PASS: GTK window NexTile C mapped
+PASS: Third window splits longest side
+PASS: Unrelated tile remains stable
+PASS: Closing restores sibling space
+PASS: Minimize releases tile
+PASS: Unminimize rejoins tiling
+PASS: Fullscreen is respected
+PASS: Fullscreen exit rejoins tiling
+PASS: Floating releases tile
+PASS: Floating off rejoins tiling
+PASS: Gap changes apply immediately
+PASS: Split orientation and reflow work
+PASS: Manual maximize is respected
+PASS: Manual unmaximize rejoins tiling
+PASS: GTK window NexTile maximized mapped
+PASS: New maximized window opens normally and tiles without a mouse move
+PASS: GTK window NexTile late-maximized mapped
+PASS: New late-maximized window opens normally and tiles without a mouse move
+PASS: GTK window NexTile late-restore mapped
+PASS: New late-restore window opens normally and tiles without a mouse move
+PASS: User can still maximize a window after startup
+PASS: Unmaximize with a delayed client resize retiles without mouse interaction
+PASS: Restoring a previously maximized, minimized window immediately retiles
+PASS: GTK window NexTile minimum size mapped
+PASS: Client minimum size floats incompatible window
+PASS: Second workspace is available
+PASS: Moving to another workspace releases source tile
+PASS: Destination workspace has independent layout
+PASS: Returning to workspace tiles again
+PASS: GTK window NexTile Insert mapped
+PASS: Dragging the title bar starts a real Mutter window move
+PASS: Source siblings fill the space released by the dragged window
+PASS: Target is split along its longest direction instead of swapping positions
+PASS: Shared tile boundary has a draggable handle
+PASS: Real mouse press grabs the shared boundary
+PASS: Dragging the boundary resizes both adjacent windows live
+PASS: Boundary release persists the ratio and releases the input grab
+PASS: Escape restores the previous split ratio
+PASS: Undirected keyboard resize does not accidentally select north/west borders
+PASS: Native window-edge resizing updates and retains the tile split
+PASS: Zero-gap layouts retain a usable boundary hit target
+PASS: Horizontal boundary drags resize the upper and lower tile
+PASS: Boundary owns a grab before disabling tiling
+PASS: Disabling during a boundary drag removes handles and releases the grab
+PASS: Constrained app fits before dragging the boundary
+PASS: Minimum-size test grabs the intended boundary
+PASS: Client minimum size restores the previous ratio without floating the app
+PASS: Quick Settings dropdown opens with gap choices
+PASS: Dropdown retains the active app window while Shell has focus
+PASS: Floating action works from the open dropdown
+PASS: Dropdown returns active window to tiling
+PASS: Toggle off disconnects signals and removes sources
+PASS: Toggle off restores original window size
+PASS: Toggle on retiles existing windows
+PASS: Extension disable destroys UI and all owned resources
+PASS: Disable clears startup tracking and expected window geometry
+PASS: Disable restores native panel and releases panel resources
+PASS: Disable removes search modal, signals and restores Super handler
+PASS: Extension can be enabled again

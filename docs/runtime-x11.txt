@@ -36,8 +36,10 @@ PASS: Provider category cards retain a half-transparent background
 PASS: Overview provider widgets remain untouched
 PASS: Down selects next application
 PASS: Up selects previous application
+PASS: Search neighbors slide forward without reversing direction between animation frames
 PASS: Real mouse wheel changes workspace while retaining search and focus
 PASS: Workspace scrolling keeps search centered and moves the other circles around it
+PASS: Search neighbors also slide backward without bouncing
 PASS: Enter launches application and closes search without showing Activities
 PASS: Application launches on selected workspace and modal grab is released
 PASS: Native provider result activates and closes search without opening Overview
@@ -75,6 +77,15 @@ PASS: Gap changes apply immediately
 PASS: Split orientation and reflow work
 PASS: Manual maximize is respected
 PASS: Manual unmaximize rejoins tiling
+PASS: GTK window NexTile maximized mapped
+PASS: New maximized window opens normally and tiles without a mouse move
+PASS: GTK window NexTile late-maximized mapped
+PASS: New late-maximized window opens normally and tiles without a mouse move
+PASS: GTK window NexTile late-restore mapped
+PASS: New late-restore window opens normally and tiles without a mouse move
+PASS: User can still maximize a window after startup
+PASS: Unmaximize with a delayed client resize retiles without mouse interaction
+PASS: Restoring a previously maximized, minimized window immediately retiles
 PASS: GTK window NexTile minimum size mapped
 PASS: Client minimum size floats incompatible window
 PASS: Second workspace is available
@@ -107,6 +118,7 @@ PASS: Toggle off disconnects signals and removes sources
 PASS: Toggle off restores original window size
 PASS: Toggle on retiles existing windows
 PASS: Extension disable destroys UI and all owned resources
+PASS: Disable clears startup tracking and expected window geometry
 PASS: Disable restores native panel and releases panel resources
 PASS: Disable removes search modal, signals and restores Super handler
 PASS: Extension can be enabled again

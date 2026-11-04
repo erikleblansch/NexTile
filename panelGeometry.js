@@ -13,10 +13,10 @@ export function workspaceFrames(count, position, viewport, scale = 1, activeWidt
         cursor += width + 8 * scale;
         return frame;
     });
-    const left = Math.floor(value);
-    const right = Math.ceil(value);
-    const center = index => frames[index].x + frames[index].width / 2;
-    const anchor = center(left) + (center(right) - center(left)) * (value - left);
+    // Interpolate the settled centers, independently of the width morph.
+    // Interpolating centers that are themselves moving reverses the ribbon
+    // midway through a transition when the pill is as wide as the search bar.
+    const anchor = (value * 32 + activeWidth / 2) * scale;
     return frames.map(frame => ({...frame, x: frame.x + viewport / 2 - anchor}));
 }
 

@@ -6,6 +6,8 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {Layout, inset} from './layout.js';
 import {TileBorders} from './tileBorders.js';
 
+const STARTUP_SETTLE_US = 1000000;
+
 export class Tiler {
     constructor(settings) {
         this.settings = settings;
@@ -16,6 +18,8 @@ export class Tiler {
         this._original = new Map();
         this._floating = new Set();
         this._maximized = new Set();
+        this._opening = new Map();
+        this._targets = new Map();
         this._source = 0;
         this._settleSource = 0;
         this._running = false;
@@ -30,9 +34,11 @@ export class Tiler {
         this._borders = new TileBorders(this);
         const connect = (object, signal, callback) =>
             this._signals.push([object, object.connect(signal, callback)]);
-        connect(global.display, 'window-created', (_display, window) => this._watch(window));
+        connect(global, 'shutdown', () => this.stop(false));
+        connect(Main.panel, 'destroy', () => this.stop(false));
+        connect(global.display, 'window-created', (_display, window) => this._watch(window, true));
         connect(global.window_manager, 'map', (_wm, actor) => {
-            this._watch(actor.meta_window);
+            this._watch(actor.meta_window, true);
             this.queue();
         });
         for (const signal of ['workareas-changed', 'window-entered-monitor', 'window-left-monitor'])
@@ -51,6 +57,7 @@ export class Tiler {
         connect(Main.sessionMode, 'updated', () => this._updateBorders());
         connect(global.display, 'restacked', () => this._updateBorders());
         connect(global.display, 'grab-op-begin', (_display, window, op) => {
+            this._opening.delete(window);
             this._grabbing = true;
             this._moveGroup = this._findGroup(window);
             this._beginResize(window, op);
@@ -69,17 +76,22 @@ export class Tiler {
         this.queue();
     }
 
-    _watch(window) {
+    _watch(window, opening = false) {
         if (!window || this._windows.has(window))
             return;
+        if (opening)
+            this._opening.set(window, 0);
         const ids = [];
-        for (const signal of ['workspace-changed', 'notify::minimized', 'notify::fullscreen'])
+        for (const signal of ['workspace-changed', 'notify::minimized', 'notify::fullscreen', 'notify::mapped', 'shown'])
             ids.push(window.connect(signal, () => this.queue()));
         for (const signal of ['notify::maximized-horizontally', 'notify::maximized-vertically']) {
             ids.push(window.connect(signal, () => {
-                if (this._applying || !this._original.has(window))
+                if (this._applying)
                     return;
-                if (window.get_maximized())
+                // Apps can restore their saved maximized state after mapping,
+                // including after our first resize. Normalize startup requests;
+                // subsequent deliberate maximization remains available.
+                if (this._original.has(window) && !this._isOpening(window) && window.get_maximized())
                     this._maximized.add(window);
                 else
                     this._maximized.delete(window);
@@ -90,8 +102,15 @@ export class Tiler {
             ids.push(window.connect(signal, () => {
                 if (this._resizeGrab?.window === window && !this._applying)
                     this._updateResize();
-                else if (!this._applying && !this._grabbing)
+                else if (!this._applying && !this._grabbing) {
+                    const target = this._targets.get(window);
+                    if (target && this._eligible(window)) {
+                        const actual = window.get_frame_rect();
+                        if (['x', 'y', 'width', 'height'].some(key => Math.abs(actual[key] - target[key]) > 2))
+                            this.queue();
+                    }
                     this._updateBorders();
+                }
             }));
         ids.push(window.connect('unmanaged', () => {
             if (this._resizeGrab?.window === window)
@@ -102,10 +121,22 @@ export class Tiler {
             this._original.delete(window);
             this._floating.delete(window);
             this._maximized.delete(window);
+            this._opening.delete(window);
+            this._targets.delete(window);
             this.queue();
         }));
         this._windows.set(window, ids);
         this.queue();
+    }
+
+    _isOpening(window) {
+        const deadline = this._opening.get(window);
+        if (deadline === undefined)
+            return false;
+        if (deadline === 0 || GLib.get_monotonic_time() <= deadline)
+            return true;
+        this._opening.delete(window);
+        return false;
     }
 
     queue() {
@@ -129,7 +160,10 @@ export class Tiler {
         return window.get_window_type() === Meta.WindowType.NORMAL &&
             !window.is_override_redirect() && !window.get_transient_for() &&
             (!window.is_on_all_workspaces() || this._sharedMonitor(window)) && !window.skip_taskbar &&
-            !window.minimized && !window.fullscreen && window.allows_resize() &&
+            // Mutter reports allows_resize() false while maximized, even for
+            // a resizable app. Admit it so startup can actually unmaximize it.
+            !window.minimized && !window.fullscreen &&
+            (window.allows_resize() || (window.get_maximized() && window.resizeable)) &&
             window.allows_move() && window.get_compositor_private()?.visible &&
             !this._floating.has(window) && !this._maximized.has(window);
     }
@@ -196,6 +230,7 @@ export class Tiler {
             }
         }
         const targets = new Map();
+        this._targets = targets;
         this._applying = true;
         try {
             for (const [workspace, monitors] of this._groups) {
@@ -207,8 +242,11 @@ export class Tiler {
                     for (const [window, rect] of group.layout.rectangles(this._area(group), gap)) {
                         targets.set(window, rect);
                         if (!this._original.has(window)) {
+                            const opening = this._isOpening(window);
+                            if (this._opening.get(window) === 0)
+                                this._opening.set(window, GLib.get_monotonic_time() + STARTUP_SETTLE_US);
                             this._original.set(window, {rect: window.get_frame_rect(),
-                                maximized: window.get_maximized()});
+                                maximized: opening ? 0 : window.get_maximized()});
                         }
                         if (window.get_maximized())
                             window.unmaximize(Meta.MaximizeFlags.BOTH);
@@ -395,6 +433,7 @@ export class Tiler {
     toggleFloating(window) {
         if (!window || window.get_window_type() !== Meta.WindowType.NORMAL)
             return;
+        this._opening.delete(window);
         if (this._floating.delete(window)) {
             this._maximized.delete(window);
         } else {
@@ -425,7 +464,7 @@ export class Tiler {
             window.maximize(saved.maximized);
     }
 
-    stop() {
+    stop(restore = true) {
         this._running = false;
         this._borders?.destroy();
         this._borders = null;
@@ -445,7 +484,7 @@ export class Tiler {
             for (const id of ids)
                 window.disconnect(id);
         }
-        if (this.settings.get_boolean('restore-on-disable')) {
+        if (restore && this.settings.get_boolean('restore-on-disable')) {
             for (const window of this._original.keys()) {
                 try {
                     this._restore(window);
@@ -459,6 +498,8 @@ export class Tiler {
         this._groups.clear();
         this._floating.clear();
         this._maximized.clear();
+        this._opening.clear();
+        this._targets.clear();
         this._grabbing = false;
     }
 }

@@ -107,7 +107,7 @@ class WorkspaceRibbon extends St.Widget {
             button.opacity = Math.round(255 * Math.max(0, Math.min(1, edge / (28 * scale))));
             if (this._searchProgress > 0) {
                 const center = frame.x + frame.width / 2;
-                if (index === active || Math.abs(center - width / 2) < activeWidth * scale / 2)
+                if (Math.abs(center - width / 2) < activeWidth * scale / 2)
                     button.opacity = 0;
             }
             button.reactive = edge > 0;

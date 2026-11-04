@@ -61,4 +61,24 @@ for (const scale of [1, 2]) {
         }
     }
 }
+// A wide search bar must not reverse the surrounding circles halfway through
+// a workspace transition. Check the entire path, in both directions and scales.
+for (const scale of [1, 2]) {
+    for (const activeWidth of [48, 120, 270, 440]) {
+        for (const direction of [1, -1]) {
+            let previous = workspaceFrames(8, direction > 0 ? 0 : 7, 700 * scale, scale, activeWidth);
+            for (let step = 1; step <= 700; step++) {
+                const position = direction > 0 ? step / 100 : 7 - step / 100;
+                const frames = workspaceFrames(8, position, 700 * scale, scale, activeWidth);
+                frames.forEach((frame, index) => {
+                    const center = frame.x + frame.width / 2;
+                    const oldCenter = previous[index].x + previous[index].width / 2;
+                    assert((center - oldCenter) * direction <= 1e-6,
+                        'Workspace circles move monotonically beside the search bar');
+                });
+                previous = frames;
+            }
+        }
+    }
+}
 print(`PASS: ${checks} panel geometry and contrast assertions`);

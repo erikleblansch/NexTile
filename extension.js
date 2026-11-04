@@ -48,6 +48,8 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this.menu.addMenuItem(this._searchSwitch);
         this._changedId = settings.connect('changed', () => this._sync());
         this._focusId = global.display.connect('notify::focus-window', () => this._rememberFocus());
+        this._panelDestroyId = Main.panel.connect('destroy', () => this._disconnectSignals());
+        this.connect('destroy', () => this._disconnectSignals());
         this._rememberFocus();
         this.menu.connect('open-state-changed', (_menu, open) => {
             if (open)
@@ -57,6 +59,8 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
     }
 
     _sync() {
+        if (this._destroyed)
+            return;
         const enabled = this._settings.get_boolean('tiling-enabled');
         const gap = this._settings.get_int('gap');
         const mode = this._settings.get_string('split-mode');
@@ -76,6 +80,8 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
     }
 
     _rememberFocus() {
+        if (this._destroyed)
+            return;
         const window = global.display.focus_window;
         // Opening Quick Settings can focus the Shell itself. Retain the last
         // application window so the floating action still addresses that window.
@@ -92,13 +98,21 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         });
     }
 
-    destroy() {
+    _disconnectSignals() {
+        if (this._destroyed)
+            return;
+        this._destroyed = true;
         this._settings.disconnect(this._changedId);
         global.display.disconnect(this._focusId);
+        Main.panel.disconnect(this._panelDestroyId);
         if (this._focus && this._focusUnmanagedId)
             this._focus.disconnect(this._focusUnmanagedId);
         this._focusUnmanagedId = 0;
         this._focus = null;
+    }
+
+    destroy() {
+        this._disconnectSignals();
         super.destroy();
     }
 });
