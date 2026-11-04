@@ -2,9 +2,15 @@
   "uuid": "nextile@erikleblansch.github.io",
   "name": "NexTile",
   "description": "Automatic largest-tile splitting, an adaptive transparent panel, centered numbered workspaces and in-panel Super-key search with native GNOME results. Controls live in Quick Settings.",
-  "shell-version": ["48"],
-  "version": 6,
-  "version-name": "0.5.1",
+  "shell-version": [
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "version": 7,
+  "version-name": "0.6.0",
   "url": "https://github.com/erikleblansch/NexTile",
-  "settings-schema": "org.gnome.shell.extensions.nextile"
+  "settings-schema": "org.gnome.shell.extensions.nextile",
+  "gettext-domain": "nextile"
 }

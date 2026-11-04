@@ -1,1 +1,1 @@
-{"uuid":"nextile-test@local","name":"NexTile test driver","description":"Isolated runtime acceptance only","shell-version":["48"]}
+{"uuid": "nextile-test@local", "name": "NexTile test driver", "description": "Isolated runtime acceptance only", "shell-version": ["48", "49", "50", "51"]}

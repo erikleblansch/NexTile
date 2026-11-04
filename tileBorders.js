@@ -3,6 +3,7 @@ import Clutter from 'gi://Clutter';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
+import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 export class TileBorders {
@@ -29,11 +30,15 @@ export class TileBorders {
             let record = this._actors.get(item.node);
             if (!record) {
                 const actor = new St.Widget({style_class: 'nextile-tile-border', reactive: true,
-                    accessible_name: 'Tegelgrens verslepen'});
+                    accessible_name: _('Drag tile boundary')});
                 record = {actor, item};
                 actor.connect('enter-event', () => {
                     this._hover = record;
-                    global.display.set_cursor(item.axis === 'horizontal' ? Meta.Cursor.E_RESIZE : Meta.Cursor.S_RESIZE);
+                    const cursor = record.item.axis === 'horizontal' ? 'E_RESIZE' : 'S_RESIZE';
+                    if (actor.set_cursor_type)
+                        actor.set_cursor_type(Clutter.CursorType[cursor]);
+                    else
+                        global.display.set_cursor(Meta.Cursor[cursor]);
                     return Clutter.EVENT_PROPAGATE;
                 });
                 actor.connect('leave-event', () => {
@@ -68,7 +73,7 @@ export class TileBorders {
         if (event.get_button() !== Clutter.BUTTON_PRIMARY || Main.modalCount || this._drag)
             return Clutter.EVENT_PROPAGATE;
         const grab = Main.pushModal(record.actor, {actionMode: Shell.ActionMode.NORMAL});
-        if (grab.get_seat_state() !== Clutter.GrabState.ALL) {
+        if (grab.get_seat_state && grab.get_seat_state() !== Clutter.GrabState.ALL) {
             Main.popModal(grab);
             return Clutter.EVENT_STOP;
         }
@@ -117,7 +122,10 @@ export class TileBorders {
     }
 
     _clearCursor() {
-        global.display.set_cursor(Meta.Cursor.DEFAULT);
+        if (this._hover?.actor.set_cursor_type)
+            this._hover.actor.set_cursor_type(Clutter.CursorType.INHERIT);
+        else if (global.display.set_cursor)
+            global.display.set_cursor(Meta.Cursor.DEFAULT);
         this._hover = null;
     }
 

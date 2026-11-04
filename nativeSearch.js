@@ -4,8 +4,10 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Search from 'resource:///org/gnome/shell/ui/search.js';
+import {updateSearch} from './compatibility.js';
 import {Highlighter} from 'resource:///org/gnome/shell/misc/util.js';
 import {ensureActorVisibleInScrollView} from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
@@ -79,7 +81,7 @@ export const NativeSearch = GObject.registerClass({
         this.visible = terms.length > 0;
         if (!terms.length)
             return;
-        this._status.text = 'Zoeken…';
+        this._status.text = _('Searching…');
         this._status.show();
         this._timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
             this._timeout = 0;
@@ -187,7 +189,7 @@ export const NativeSearch = GObject.registerClass({
             // Cached metadata resolves in this microtask turn; late remote
             // replies can never repopulate a closed/destroyed search.
             let completed = false;
-            await display.updateSearch(ids, this._terms, () => {
+            await updateSearch(display, ids, this._terms, () => {
                 if (current()) {
                     if (!completed)
                         this._pending--;
@@ -216,7 +218,7 @@ export const NativeSearch = GObject.registerClass({
             }
         }
         this._status.visible = !this._rows.length;
-        this._status.text = this._pending ? 'Zoeken…' : 'Geen resultaten';
+        this._status.text = this._pending ? _('Searching…') : _('No results');
         this.select(Math.max(0, this._selected));
         this.emit('updated');
         if (this._activateWhenReady && this._rows.length) {

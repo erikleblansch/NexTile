@@ -9,6 +9,9 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+// Test the same version adapters used by the installed extension.
+import {maximizeFlags, maximize, unmaximize} from '../nextile@erikleblansch.github.io/compatibility.js';
+
 const delay = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
     resolve();
     return GLib.SOURCE_REMOVE;
@@ -20,7 +23,17 @@ const rect = window => {
 
 export default class TestDriver extends Extension {
     enable() {
-        this._run().catch(error => this._finish(`${this._log?.join('\n')}\nFAIL: ${error.message}\n${error.stack}`));
+        this._run().catch(async error => {
+            try {
+                const file = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.failure.png`);
+                const stream = file.replace(null, false, Gio.FileCreateFlags.NONE, null);
+                await new Promise((resolve, reject) => new Shell.Screenshot().screenshot(false, stream, (source, result) => {
+                    try { source.screenshot_finish(result); resolve(); } catch (e) { reject(e); }
+                }));
+                stream.close(null);
+            } catch { /* Preserve the original failure even if capture fails. */ }
+            this._finish(`${this._log?.join('\n')}\nFAIL: ${error.message}\n${error.stack}`);
+        });
     }
 
     _finish(message) {
@@ -40,6 +53,11 @@ export default class TestDriver extends Extension {
         };
         assert(ext?._tiler?._running, 'Extension loads and tiler starts');
         assert(ext._toggle.title === 'NexTile' && !!ext._toggle.menu, 'Native Quick Settings toggle with menu');
+        if (GLib.getenv('NEXTILE_TEST_ONLY') === 'settings') {
+            await this._settingsTests(ext, assert);
+            this._finish(log.join('\n'));
+            return;
+        }
         if (GLib.getenv('NEXTILE_TEST_ONLY') === 'search') {
             await this._searchTests(ext, assert);
             this._finish(log.join('\n'));
@@ -113,10 +131,10 @@ export default class TestDriver extends Extension {
         ext._settings.set_string('split-mode', 'auto');
         ext._tiler.retile();
         await delay(600);
-        b.maximize(Meta.MaximizeFlags.BOTH);
+        maximize(b, Meta.MaximizeFlags.BOTH);
         await delay(600);
-        assert(b.get_maximized() && rect(a).width === area.width - 16, 'Manual maximize is respected');
-        b.unmaximize(Meta.MaximizeFlags.BOTH);
+        assert(maximizeFlags(b) && rect(a).width === area.width - 16, 'Manual maximize is respected');
+        unmaximize(b, Meta.MaximizeFlags.BOTH);
         await delay(600);
         assert(rect(a).width === a2.width, 'Manual unmaximize rejoins tiling');
         for (const mode of ['maximized', 'late-maximized', 'late-restore']) {
@@ -124,19 +142,19 @@ export default class TestDriver extends Extension {
             const isTiled = () => {
                 const group = ext._tiler._findGroup(window);
                 const target = group?.layout.rectangles(ext._tiler._area(group), ext._settings.get_int('gap')).get(window);
-                return target && !window.get_maximized() && !window.minimized && !ext._tiler.isFloating(window) &&
+                return target && !maximizeFlags(window) && !window.minimized && !ext._tiler.isFloating(window) &&
                     ['x', 'y', 'width', 'height'].every(key => Math.abs(rect(window)[key] - target[key]) <= 2);
             };
             const tiled = isTiled();
             assert(tiled, `New ${mode} window opens normally and tiles without a mouse move` + (tiled ? '' :
-                ` ${JSON.stringify({frame: rect(window), target: ext._tiler._targets.get(window), max: window.get_maximized(),
+                ` ${JSON.stringify({frame: rect(window), target: ext._tiler._targets.get(window), max: maximizeFlags(window),
                     floating: ext._tiler.isFloating(window), excluded: ext._tiler._maximized.has(window),
                     opening: ext._tiler._opening.get(window), resize: window.allows_resize(), move: window.allows_move()})}`));
             if (mode === 'late-restore') {
                 await delay(500);
-                window.maximize(Meta.MaximizeFlags.BOTH);
+                maximize(window, Meta.MaximizeFlags.BOTH);
                 await delay(600);
-                assert(!!window.get_maximized(), 'User can still maximize a window after startup');
+                assert(!!maximizeFlags(window), 'User can still maximize a window after startup');
                 Gio.Subprocess.new(['kill', '-USR1', String(window.get_pid())], Gio.SubprocessFlags.NONE);
                 await delay(850);
                 assert(isTiled(), 'Unmaximize with a delayed client resize retiles without mouse interaction');
@@ -182,7 +200,7 @@ export default class TestDriver extends Extension {
         const inserted = await spawn('NexTile Insert');
         const targetBefore = rect(b);
         const freedBefore = rect(inserted);
-        const dragPointer = Clutter.get_default_backend().get_default_seat()
+        const dragPointer = (global.stage.context?.get_backend() ?? Clutter.get_default_backend()).get_default_seat()
             .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
         a.activate(global.get_current_time());
         await delay(200);
@@ -280,7 +298,7 @@ export default class TestDriver extends Extension {
 
     async _borderTests(ext, a, b, assert) {
         const tiler = ext._tiler;
-        const seat = Clutter.get_default_backend().get_default_seat();
+        const seat = (global.stage.context?.get_backend() ?? Clutter.get_default_backend()).get_default_seat();
         const pointer = seat.create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
         const keyboard = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
         const move = async (x, y) => {
@@ -425,10 +443,10 @@ export default class TestDriver extends Extension {
             canLaunchSearch: true,
             async getInitialResultSet(terms) {
                 await delay(80);
-                return terms.join(' ').includes('zoektest') ? Array.from({length: 8}, (_, i) => `document-${i}`) : [];
+                return terms.join(' ').includes('nextile search test') ? Array.from({length: 8}, (_, i) => `document-${i}`) : [];
             },
             async getResultMetas(ids) {
-                return ids.map(id => ({id, name: `Zoektest ${id}`, description: 'Een resultaat van de ingestelde zoekprovider',
+                return ids.map(id => ({id, name: `Search test ${id}`, description: 'A result from the configured search provider',
                     createIcon: size => new St.Icon({icon_name: 'text-x-generic', icon_size: size})}));
             },
             filterResults: (ids, max) => ids.slice(0, max),
@@ -442,7 +460,7 @@ export default class TestDriver extends Extension {
         mutter.set_boolean('dynamic-workspaces', false);
         preferences.set_int('num-workspaces', 4);
         await delay(400);
-        const keyboard = Clutter.get_default_backend().get_default_seat()
+        const keyboard = (global.stage.context?.get_backend() ?? Clutter.get_default_backend()).get_default_seat()
             .create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
         const press = async key => {
             keyboard.notify_keyval(GLib.get_monotonic_time(), key, Clutter.KeyState.PRESSED);
@@ -484,10 +502,10 @@ export default class TestDriver extends Extension {
                 try { source.screenshot_area_finish(result); resolve(); } catch (error) { reject(error); }
             }));
         stream.close(null);
-        for (const letter of 'zoektest')
+        for (const letter of 'nextile search test')
             await press(letter.charCodeAt(0));
         await delay(500);
-        assert(search._entry.get_text() === 'zoektest', 'Typing after Super enters the query directly');
+        assert(search._entry.get_text() === 'nextile search test', 'Typing after Super enters the query directly');
         assert(search._results._rows.filter(row => row.id.startsWith('nextile-search-')).length === 2,
             'Native GNOME app search finds installed fixture applications');
         const section = search._results._sections.get(remote).display;
@@ -507,7 +525,7 @@ export default class TestDriver extends Extension {
         assert(search._results._selected === 1, 'Down selects next application');
         await press(Clutter.KEY_Up);
         assert(search._results._selected === 0, 'Up selects previous application');
-        const pointer = Clutter.get_default_backend().get_default_seat()
+        const pointer = (global.stage.context?.get_backend() ?? Clutter.get_default_backend()).get_default_seat()
             .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
         pointer.notify_absolute_motion(GLib.get_monotonic_time(), monitor.x + monitor.width / 2,
             monitor.y + Main.panel.height + 28);
@@ -523,8 +541,9 @@ export default class TestDriver extends Extension {
         assert(forwardSmooth, 'Search neighbors slide forward without reversing direction between animation frames' +
             (forwardSmooth ? '' : ` (${samples.join(',')})`));
         assert(global.workspace_manager.get_active_workspace_index() === 1 && search._open &&
-            search._entry.get_text() === 'zoektest' && search._entry.clutter_text.has_key_focus(),
-        'Real mouse wheel changes workspace while retaining search and focus');
+            search._entry.get_text() === 'nextile search test' && search._entry.clutter_text.has_key_focus(),
+        'Real mouse wheel changes workspace while retaining search and focus' +
+            ` (workspace=${global.workspace_manager.get_active_workspace_index()}, open=${search._open}, focus=${global.stage.get_key_focus()}, entryFocus=${search._entry.clutter_text.has_key_focus()})`);
         const [leftX] = ribbon._buttons[0].get_transformed_position();
         const [rightX] = ribbon._buttons[2].get_transformed_position();
         assert(ribbon._buttons[1].opacity === 0 &&
@@ -554,16 +573,16 @@ export default class TestDriver extends Extension {
         launched.delete(global.get_current_time());
         await delay(300);
         search.open();
-        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile search test');
         await delay(500);
         search._results._rows.find(row => row.id === 'document-0').button.activate();
         assert(activatedRemote === 'document-0' && !search._open && !Main.overview.visible,
             'Native provider result activates and closes search without opening Overview');
         search.open();
-        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile search test');
         await delay(500);
         search._results._sections.get(remote).display.providerInfo.emit('clicked', 1);
-        assert(launchedTerms === 'zoektest' && !search._open && !Main.overview.visible,
+        assert(launchedTerms === 'nextile search test' && !search._open && !Main.overview.visible,
             'Provider header opens full provider search without opening Overview');
         await press(Clutter.KEY_Super_L);
         await press(Clutter.KEY_Escape);
@@ -580,12 +599,12 @@ export default class TestDriver extends Extension {
         await delay(350);
         assert(!search._open && Main.modalCount === modalCount, 'Clicking outside search closes it and releases the grab');
         search.open();
-        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile search test');
         search._entry.set_text('nextile-query-with-no-results');
         await delay(400);
         assert(search._results._rows.length === 0 && search._results.visible,
             'New query replaces old results and shows empty-result feedback');
-        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile search test');
         search.close(false);
         await delay(300);
         assert(!search._results._timeout && search._results._rows.length === 0 && !search._results.visible,
@@ -599,7 +618,7 @@ export default class TestDriver extends Extension {
             return getResults.apply(this, args);
         };
         search.open();
-        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile search test');
         await delay(200);
         assert(!!search._results._pending, 'Delayed application provider has an in-flight search');
         await press(Clutter.KEY_Return);
@@ -610,7 +629,7 @@ export default class TestDriver extends Extension {
         fastLaunch.delete(global.get_current_time());
         await delay(300);
         search.open();
-        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile search test');
         await delay(150);
         ext._settings.set_boolean('search-enabled', false);
         await delay(600);
@@ -633,6 +652,36 @@ export default class TestDriver extends Extension {
         preferences.set_int('num-workspaces', 2);
         mutter.set_boolean('dynamic-workspaces', true);
         await delay(600);
+    }
+
+    async _settingsTests(ext, assert) {
+        const language = GLib.getenv('NEXTILE_TEST_LANGUAGE') ?? 'en';
+        const labels = {
+            en: ['Transparent terminal', 'Type to search', 'Workspace 1'],
+            nl: ['Transparante terminal', 'Typ om te zoeken', 'Werkruimte 1'],
+            de: ['Transparentes Terminal', 'Suchbegriff eingeben', 'Arbeitsfläche 1'],
+            fr: ['Terminal transparent', 'Saisissez votre recherche', 'Espace de travail 1'],
+            es: ['Terminal transparente', 'Escribe para buscar', 'Espacio de trabajo 1'],
+        }[language];
+        assert(ext._toggle._terminalSwitch.label.text === labels[0], `Quick Settings follows ${language} locale`);
+        assert(ext._search._entry.hint_text === labels[1], `Search follows ${language} locale`);
+        assert(ext._appearance._ribbon._buttons[0].accessible_name.startsWith(labels[2]),
+            `Workspace accessibility follows ${language} locale`);
+        const file = Gio.File.new_for_path(`${GLib.get_user_config_dir()}/gtk-3.0/gtk.css`);
+        const read = () => new TextDecoder().decode(file.load_contents(null)[1]);
+        const original = read();
+        ext._toggle._terminalSwitch.emit('toggled', true);
+        await delay(200);
+        assert(ext._settings.get_boolean('terminal-transparent') && ext._toggle._terminalSwitch.state,
+            'Terminal switch stores and displays enabled state');
+        assert(read().startsWith(original) && read().includes('BEGIN NEXTILE TERMINAL TRANSPARENCY'),
+            'Terminal toggle adds managed CSS and preserves existing styles');
+        ext._toggle._terminalSwitch.emit('toggled', false);
+        await delay(200);
+        assert(!ext._settings.get_boolean('terminal-transparent') && !ext._toggle._terminalSwitch.state,
+            'Terminal switch stores and displays disabled state');
+        assert(read().startsWith(original) && !read().includes('BEGIN NEXTILE TERMINAL TRANSPARENCY'),
+            'Terminal toggle removes only managed CSS');
     }
 
     async _panelTests(ext, assert) {

@@ -6,10 +6,11 @@ test_dir=$(mktemp -d /tmp/nextile-runtime.XXXXXX)
 echo "Runtime evidence: $test_dir"
 mkdir -p "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io" "$test_dir/config" "$test_dir/runtime"
 chmod 700 "$test_dir/runtime"
-cp "$repo_dir/"{extension.js,layout.js,tiler.js,tileBorders.js,panel.js,panelGeometry.js,compactSearch.js,nativeSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
+cp "$repo_dir/"{extension.js,compatibility.js,terminalStyle.js,layout.js,tiler.js,tileBorders.js,panel.js,panelGeometry.js,compactSearch.js,nativeSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
+cp -r "$repo_dir/locale" "$repo_dir/extras" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 cp -r "$repo_dir/schemas" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 glib-compile-schemas --strict "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/schemas"
-cp -r "$repo_dir/tests/driver" "$test_dir/data/gnome-shell/extensions/nextile-test@local"
+cp -r "${NEXTILE_DRIVER:-$repo_dir/tests/driver}" "$test_dir/data/gnome-shell/extensions/nextile-test@local"
 export XDG_DATA_HOME="$test_dir/data" XDG_CONFIG_HOME="$test_dir/config" XDG_RUNTIME_DIR="$test_dir/runtime"
 export NEXTILE_TEST_RESULT="$test_dir/result.txt" NEXTILE_TEST_FIXTURE="$repo_dir/tests/fixture.py"
 mkdir -p "$XDG_DATA_HOME/applications"
@@ -17,7 +18,7 @@ for name in Alpha Beta; do
     cat > "$XDG_DATA_HOME/applications/nextile-search-$name.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=NexTile Zoektest $name
+Name=NexTile Search Test $name
 Exec=python3 "$NEXTILE_TEST_FIXTURE" "NexTile Search $name"
 Icon=utilities-terminal
 Terminal=false
@@ -25,18 +26,29 @@ EOF
 done
 export GSETTINGS_BACKEND=keyfile
 mkdir -p "$XDG_CONFIG_HOME/gtk-3.0"
-cp "$repo_dir/extras/terminal-transparency.css" "$XDG_CONFIG_HOME/gtk-3.0/gtk.css"
+if [ -n "${NEXTILE_DEMO_ROOT:-}" ]; then
+    python3 "$repo_dir/tools/configure-terminal.py" > /dev/null
+else
+    cp "$repo_dir/extras/terminal-transparency.css" "$XDG_CONFIG_HOME/gtk-3.0/gtk.css"
+fi
 export NEXTILE_TERMINAL_FIXTURE="$repo_dir/tests/terminal-fixture.py"
 export NEXTILE_TEST_BACKEND="${1:-wayland}"
 timeout 120s dbus-run-session -- bash -c '
     set -eu
     gsettings set org.gnome.shell enabled-extensions "['\''nextile@erikleblansch.github.io'\'', '\''nextile-test@local'\'']"
-    gsettings set org.gnome.shell welcome-dialog-last-shown-version "48.0"
+    gsettings set org.gnome.shell welcome-dialog-last-shown-version "99.0"
     gsettings set org.gnome.desktop.interface enable-animations false
+    # Virtual devices start at (0, 0); do not let their creation trigger the
+    # overview hot corner before the first scripted absolute motion arrives.
+    gsettings set org.gnome.desktop.interface enable-hot-corners false
     gsettings set org.gnome.desktop.search-providers disable-external true
     xephyr_pid=""
     if [ "$NEXTILE_TEST_BACKEND" = x11 ]; then
-        Xephyr -displayfd 3 -screen 1280x800 -nolisten tcp -noreset 3> "$XDG_RUNTIME_DIR/display" > "$XDG_RUNTIME_DIR/xephyr.log" 2>&1 &
+        if [ -n "${NEXTILE_XVFB:-}" ]; then
+            "$NEXTILE_XVFB" -displayfd 3 -screen 0 1440x900x24 -nolisten tcp -noreset 3> "$XDG_RUNTIME_DIR/display" > "$XDG_RUNTIME_DIR/xephyr.log" 2>&1 &
+        else
+            Xephyr -displayfd 3 -screen 1280x800 -nolisten tcp -noreset 3> "$XDG_RUNTIME_DIR/display" > "$XDG_RUNTIME_DIR/xephyr.log" 2>&1 &
+        fi
         xephyr_pid=$!
         for attempt in $(seq 1 40); do
             [ -s "$XDG_RUNTIME_DIR/display" ] && break

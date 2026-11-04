@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.nextile" path="/org/gnome/shell/extensions/nextile/">
+    <key name="terminal-transparent" type="b">
+      <default>false</default>
+      <summary>Use a translucent GNOME Terminal background</summary>
+      <description>Writes a scoped GTK 3 style. Restart Terminal to apply. Other terminal applications are not affected.</description>
+    </key>
     <key name="search-enabled" type="b">
       <default>true</default>
       <summary>Super opens compact application search</summary>

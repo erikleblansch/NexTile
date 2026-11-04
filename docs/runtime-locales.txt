@@ -1,0 +1,65 @@
+en_US
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Quick Settings follows en locale
+PASS: Search follows en locale
+PASS: Workspace accessibility follows en locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
+
+nl_NL
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Quick Settings follows nl locale
+PASS: Search follows nl locale
+PASS: Workspace accessibility follows nl locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
+
+de_DE
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Quick Settings follows de locale
+PASS: Search follows de locale
+PASS: Workspace accessibility follows de locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
+
+fr_FR
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Quick Settings follows fr locale
+PASS: Search follows fr locale
+PASS: Workspace accessibility follows fr locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
+
+es_ES
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Quick Settings follows es locale
+PASS: Search follows es locale
+PASS: Workspace accessibility follows es locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
+
+ja_JP
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Quick Settings follows en locale
+PASS: Search follows en locale
+PASS: Workspace accessibility follows en locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS

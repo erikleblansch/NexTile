@@ -1,0 +1,82 @@
+# NexTile translations. GPL-3.0-or-later.
+msgid ""
+msgstr "Project-Id-Version: NexTile 0.6.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 00:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: es\nLanguage: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Room for every window"
+msgstr "Espacio para cada ventana"
+
+msgid "Window gaps"
+msgstr "Separación entre ventanas"
+
+msgid "Automatic"
+msgstr "Automático"
+
+msgid "Side by side"
+msgstr "En paralelo"
+
+msgid "Stacked"
+msgstr "Apiladas"
+
+msgid "Split direction"
+msgstr "Dirección de división"
+
+msgid "Float active window"
+msgstr "Hacer flotante la ventana activa"
+
+msgid "Reflow windows"
+msgstr "Reorganizar ventanas"
+
+msgid "Restore windows when tiling is off"
+msgstr "Restaurar ventanas al desactivar"
+
+msgid "Transparent top bar"
+msgstr "Barra superior transparente"
+
+msgid "Super opens search"
+msgstr "Super abre la búsqueda"
+
+msgid "Transparent terminal"
+msgstr "Terminal transparente"
+
+msgid "Off"
+msgstr "Desactivado"
+
+#, javascript-format
+msgid "Window gaps · %d px"
+msgstr "Separación entre ventanas · %d px"
+
+msgid "Workspaces"
+msgstr "Espacios de trabajo"
+
+#, javascript-format
+msgid "Workspace %d"
+msgstr "Espacio de trabajo %d"
+
+#, javascript-format
+msgid "Workspace %d, active — open overview"
+msgstr "Espacio de trabajo %d, activo — abrir la vista general"
+
+#, javascript-format
+msgid "Switch to workspace %d"
+msgstr "Cambiar al espacio de trabajo %d"
+
+msgid "Type to search"
+msgstr "Escribe para buscar"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "Searching…"
+msgstr "Buscando…"
+
+msgid "No results"
+msgstr "Sin resultados"
+
+msgid "Drag tile boundary"
+msgstr "Arrastrar el límite del mosaico"
+
+msgid "Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile."
+msgstr "Cierra todas las ventanas de GNOME Terminal y vuelve a abrir Terminal para aplicar el cambio. Activa «Usar los colores del tema del sistema» en tu perfil de Terminal."
+
+msgid "Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact."
+msgstr "No se pudo actualizar el estilo del terminal. Comprueba que se pueda escribir en tu configuración de GTK y que los marcadores CSS de NexTile estén intactos."

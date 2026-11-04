@@ -1,44 +1,53 @@
-# Validatie — NexTile 0.5.1
+# Validation — NexTile 0.6.0
 
-Datum: 4 november 2026. GNOME Shell / Mutter **48.7** op de doelcomputer.
+Tested on **5 November 2026**. The final source was exercised in real, isolated GNOME Shell sessions, not only checked against version metadata.
 
-| Controle | Resultaat |
+| Check | Result |
 | --- | --- |
-| Pure indelingslogica | 2.431 assertions geslaagd met GJS. |
-| Balkgeometrie en contrast | 102.075 assertions geslaagd: centrering, continue beweging, schaalfactoren, sRGB-helderheid, omschakelmarge en lokale kleurmetingen, rekbare zoekruimte en het opzij schuiven van naburige werkruimtes, plus monotone beweging in beide richtingen bij vier pil-/zoekbalkbreedtes en twee schaalfactoren. |
-| GSettings-schema | `glib-compile-schemas --strict --dry-run` geslaagd. |
-| GNOME X11 in Xephyr | 124 runtime-assertions geslaagd met echte GTK 3-vensters. |
-| GNOME Wayland, twee virtuele schermen | 127 runtime-assertions geslaagd met echte GTK 3-vensters. |
-| Shell-log | Geen `JS ERROR`, GJS-critical, CSS-parsefout of NexTile-zoek-/contrastfout in beide finale runs, inclusief afsluiten van Shell. |
-| Afsluiten met open tegels | Aanvullende [X11-proef](runtime-shutdown-x11.txt) met 65 assertions geslaagd; geen GJS-fouten tijdens het beëindigen van Shell met twee open testvensters. |
-| ZIP | Twee builds leveren dezelfde SHA-256 op; expliciete bestandslijst, testdriver uitgesloten. |
+| Split-tree geometry | 2,431 GJS assertions passed |
+| Panel geometry and contrast | 102,075 assertions passed |
+| Compatibility adapters | Old/new maximize APIs, partial flags, callback/Promise completion and error propagation passed |
+| Terminal CSS | Preservation, removal, repeated application, backups, symlinks and malformed-marker rejection passed |
+| Translation catalogs | All 25 strings present in Dutch, German, French and Spanish; placeholders, regional variants and English fallback passed |
+| GNOME 48.7 / X11 | [124 runtime assertions passed](runtime-x11.txt) |
+| GNOME 48.7 / Wayland | [127 runtime assertions passed](runtime-wayland.txt), two virtual monitors |
+| GNOME 49.10 / Wayland | [127 runtime assertions passed](runtime-gnome49.txt), Fedora 43 container |
+| GNOME 50.6 / Wayland | [127 runtime assertions passed](runtime-gnome50.txt), Fedora 44 container |
+| GNOME 51.1 / Wayland | [127 runtime assertions passed](runtime-gnome51.txt), Fedora 45 container |
+| Language and terminal-switch UI | [Six isolated GNOME 48.7 sessions passed](runtime-locales.txt): en_US, nl_NL, de_DE, fr_FR, es_ES, and ja_JP using the English fallback |
+| Final Shell logs | No JavaScript errors, GJS criticals, CSS parsing errors or NexTile search/contrast errors, including compositor shutdown |
+| Schema | Strict GLib schema compilation passed |
+| Release archive | Deterministic ZIP, explicit file list, compiled translations and schema, no test/demo driver |
+| Demo | Real 1440 × 900 GNOME recording, H.264, 30 fps, about 35 seconds; browser playback, seeking and mobile layout checked |
 
-De runtime-controles testen laden, grootste tegel halveren, stabiele andere tegels, sluiten, minimaliseren, fullscreen, handmatig maximaliseren, zwevend maken, vensterafstand, splitsrichting, werkruimtewissels, invoegen door een echte muissleepactie via de titelbalk, het openen van Quick Settings, focusbehoud en de zweefactie in dat menu. Ook herstel bij uitschakelen, het verwijderen van signalen/timers en opnieuw inschakelen zijn gecontroleerd. De Wayland-run controleert daarnaast verplaatsing tussen twee monitoren en een onafhankelijke indeling op het tweede scherm.
+## What the runtime tests cover
 
-De balkcontroles verifiëren volledige transparantie, de klok links, de kalender, zwart/witcontrast op effen en gemengde achtergronden, compositorkleurwijzigingen zonder instellingenwijziging, kleurkeuze per werkruimteknop en stilstand zonder terugkerende timers. De genummerde knoppen zijn getest op aantallen toevoegen/verwijderen, klikken, tussenliggende animatieframes, centrering van de eerste/middelste/laatste actieve werkruimte, cirkel-/pilafmetingen en het openen van het overzicht. De aparte balkschakelaar en het terugzetten van de oorspronkelijke GNOME-balk zijn eveneens gecontroleerd.
+**Windows:** loading and restarting the extension; largest-tile splitting; stable unrelated tiles; closing, minimizing and restoring; fullscreen; manual maximization; floating; gap and split settings; per-workspace and per-monitor layouts; and restoring original geometry when tiling is disabled. Real GTK apps request maximization before mapping and shortly after mapping, or resize again after unmaximizing. They must join the layout without a mouse move.
 
-De zoekcontroles sturen virtuele toetsenbord- en muisapparaten door Mutter: Super, direct typen, pijltjestoetsen, muiswiel, Enter, Escape en klikken buiten de zoekbalk. Twee tijdelijke desktopbestanden leveren echte GTK-testprogramma’s. Gecontroleerd zijn focusbehoud, zoeken via de native GNOME-provider, starten op de geselecteerde werkruimte, tussenliggende groeianimatieframes, herstel van de normale Super-toets en uitschakelen tijdens een vertraagde zoekopdracht. Enter tijdens een lopende zoekopdracht en het negeren van te laat ontvangen resultaten zijn ook getest. De controles verifiëren dat de zoekbalk binnen de bovenbalk de actieve pil vervangt, naburige rondjes opzij duwt en ook na scrollen gecentreerd blijft. Een asynchrone testprovider wordt geregistreerd in GNOME’s gewone providerregister: de native categorieweergave toont vijf resultaten en de telling voor drie overige resultaten. Resultaatactivering en de providerknop sluiten NexTile zonder het overzicht te openen; de oorspronkelijke overzichtwidgets blijven intact. De algemene achtergrond is transparant; de achtergrondkleur van de native categoriepanelen heeft een alfa van 128/255. Bij scrollen in de zoekmodus worden ook tussenliggende posities van een naburige cirkel gemeten, voorwaarts en achterwaarts; geen daarvan mag terugveren. De reguliere tests sluiten Shell af met gesloten zoekbalk en controleren daarna het Shell-log.
+**Dragging:** a virtual pointer moves a real title bar through Mutter and inserts the window by splitting the destination. Shared boundaries resize both adjacent windows; ratios persist after release. Escape restores a split, disabling during a grab releases it, and a GTK minimum-size refusal restores the previous ratio. The ordinary window-edge path is also exercised programmatically at zero gaps; that particular check is not a physical pointer drag along the app's own edge.
 
-De nieuwe venstercontroles openen echte GTK-vensters die vóór het tonen of 200 ms daarna maximaliseren. Beide moeten zonder muisactie normaal betegeld worden. Een derde testapp voert na terugzetten uit de gemaximaliseerde stand nog een vertraagde eigen maatwijziging uit; de tegelmaat wordt automatisch hersteld. Minimaliseren/terughalen en later bewust maximaliseren blijven getest.
+**Panel:** transparency, clock position and calendar; black/white text on solid and mixed backgrounds; direct compositor background changes; per-workspace contrast; no recurring sampling on a stable desktop; workspace counts, click navigation and intermediate animation frames; centered active pills; independent enable/disable and restoration. The startup lifecycle fix reconnects to the background managers that Shell recreates after extension loading.
 
-De tegelgrenzen zijn getest met virtuele muisinvoer door Mutter: beide sleeprichtingen, wijzigingen van beide aangrenzende vensters, behouden verhoudingen na loslaten, Escape en uitschakelen tijdens een actieve muisgrab. De test sleept ook een titelbalk naar een andere tegel en controleert de splitsrichting en het opvullen van de oude ruimte. Een GTK-app met een minimummaat controleert dat een geweigerde grensverplaatsing de vorige verhouding herstelt en de app niet zwevend maakt. Het pad voor een gewone vensterrand wordt apart aangeroepen met een programmatische maatwijziging bij vensterafstand nul; dit is geen echte muissleepactie langs die vensterrand.
+**Search:** virtual Super, typed input, arrows, Tab, Enter, Escape, outside click and wheel events. Tests check the in-panel morph, displaced neighboring circles, monotonic motion in both directions, query/focus retention, launch on the selected workspace, delayed results and cancellation. An asynchronous provider in the real GNOME registry exercises native category cards, counts, result activation and provider-header activation. GNOME's own overview widgets remain intact. General search background is transparent; category-card alpha is 128/255.
 
-De terminalcontrole opent GNOME Terminal 3.56.2 met VTE 0.80.1, een afzonderlijke GTK-configuratie en uitsluitend synthetische tekst. Een pixelmeting vergelijkt de achtergrond met een 50%-menging van de terminalkleur en het testbureaublad: gemeten RGB `(21, 63, 67)`. De vensteractor behoudt volledige dekking; de tekst wordt niet samen met het hele venster vervaagd. De configuratiehelper is ook gecontroleerd op behoud van bestaande CSS, reservekopieën, herhaald toepassen en verwijderen.
+**Terminal and languages:** a real GNOME Terminal window uses isolated GTK configuration. Pixel readback confirms a half-transparent background while the window actor remains opaque. Separate language sessions verify the translated menu, search placeholder and workspace accessibility label, then toggle the managed terminal CSS on and off and check persistence and preservation of pre-existing styles.
 
-De volledige assertionlijsten staan in [runtime-x11.txt](runtime-x11.txt) en [runtime-wayland.txt](runtime-wayland.txt). De afbeeldingen zijn afkomstig uit de 0.5.0-test; de vormgeving is in deze reparatie behouden. De [menuafbeelding](quick-settings.png), [bovenbalk](topbar.png), [zoekbalk](search.png), [zoekresultaten](search-results.png) en [terminal](terminal.png) zijn echte opnamen uit de geïsoleerde X11-test, met een synthetische achtergrond.
+The refreshed [menu](quick-settings.png), [panel](topbar.png), [search](search.png), [results](search-results.png) and [terminal](terminal.png) screenshots come from isolated GNOME 48 tests. The [demo](DEMO.md) uses separate synthetic content.
 
-## Grenzen
+## Reproduction
 
-- Een aanvullende proef met versie 0.3.0 die de geïsoleerde compositor beëindigt terwijl de zoekbalk toetsenbordfocus heeft, geeft bij het afsluiten GNOME/IBus-meldingen over al vernietigde invoerwidgets. De zoekbediening en het gewone uitschakelen tijdens een geopende zoekopdracht slagen. Dit is niet als opgelost geclaimd in 0.5.1. Deze aanvullende afsluitproef telt niet als geslaagde runtimecontrole.
+See the [README](../README.md#build-and-contribute) for the local harness and the [compatibility guide](COMPATIBILITY.md#repeat-the-container-checks) for Docker commands. GitHub Actions runs pure tests, packaging and the three-version 49/50/51 Wayland matrix. Container tests use software rendering; the user's running desktop is never replaced.
 
-- De bestaande ingelogde desktop is voor deze update niet herstart. De lokale installatie van 0.5.1 is voorbereid voor de volgende aanmelding; deze versie is in de gebruikerssessie nog niet bevestigd.
-- De categorieweergave en activatie zijn gecontroleerd met een asynchrone testprovider in het echte GNOME-register. De afzonderlijke externe providers voor bijvoorbeeld Bestanden, Software en Instellingen zijn niet allemaal afzonderlijk doorgetest; hun beschikbaarheid en gedrag blijven afhankelijk van de geïnstalleerde apps en GNOME-instellingen.
-- Twee eerdere Wayland-runs stopten bij de bestaande contrastproef voor een rechtstreeks gewijzigde compositorachtergrond. De kleurwisseling werd daar niet waargenomen; de oorzaak is nog niet vastgesteld. De test wacht nu begrensd op het resultaat en geeft bij fouten aanvullende toestand mee. Dit staat los van de nieuwe animatie- en venstercontroles.
-- Fysiek aansluiten/loskoppelen van schermen, gemengde HiDPI-schaling, vergrendelen/ontgrendelen en langdurig dagelijks gebruik zijn niet afzonderlijk runtime-getest.
-- De balkanimaties zijn in de geïsoleerde sessies met `--force-animations` getest. Fysieke touchpadgebaren, invoermethoden met pre-edit, het schermtoetsenbord, schermlezers en het uitschakelen van animaties zijn niet afzonderlijk runtime-getest.
-- Opstartnormalisatie vangt opgeslagen maximale afmetingen tot één seconde na de eerste tegelplaatsing op. Een later maximalisatieverzoek wordt als bewuste maximalisatie behandeld; Mutter geeft hier geen afzonderlijke herkomst voor app- en gebruikersverzoeken.
-- Minimumafmetingen bij invoegen en grensverplaatsingen zijn gecontroleerd met GTK 3. Gedrag van afzonderlijke andere apps blijft afhankelijk van hun vensterconstraints.
-- Geen aparte CPU-/geheugenbenchmark. De implementatie gebruikt signalen en begrensde eenmalige timers. Geen terugkerende kleurmetingen op een stabiele desktop is wel runtime-gecontroleerd.
-- GitHub Actions controleert geometrie, schema en packaging. Het draait geen GNOME-compositorsessie.
+Virtual input devices initially appear at the top-left corner. The isolated harness disables the overview hot corner so creating a test pointer cannot unexpectedly open Overview and invalidate a search or title-bar drag. This is a test-session setting; NexTile does not change the user's hot-corner preference.
 
-Reproduceren: zie de commando's in [README.md](../README.md). De testdriver wordt alleen in de tijdelijke testextensiemap geïnstalleerd.
+## Limits
+
+- Installation on the existing desktop is staged for the next login. The running user session is not restarted automatically.
+- These checks do not cover physical monitor hotplug, mixed HiDPI, lock/unlock, physical touchpad gestures, screen readers, on-screen keyboards, input-method pre-edit or prolonged daily use.
+- External provider layout and activation are tested using an asynchronous fixture. Individual Files, Software, Settings and other providers depend on the installed applications and have not all been tested separately.
+- Container coverage uses native Wayland GTK 3 clients. XWayland clients on GNOME 49–51 and every application's minimum-size constraints are not individually verified.
+- Startup maximization requests are normalized for one second after the first tile placement. A later request is treated as deliberate maximization; Mutter does not identify whether the app or user initiated it.
+- GNOME Terminal transparency requires theme colors and a Terminal restart. Console, Ptyxis and Flatpak override configuration are outside this option's scope.
+- An older 0.3 test that forcibly stopped the compositor with search still focused produced GNOME/IBus disposed-widget warnings. This special forced-shutdown case has not been claimed fixed. Normal close, disable during an in-flight query and final shutdown with search closed pass.
+- Earlier 0.5 Wayland tests intermittently missed compositor-only contrast changes. This release found and fixed a startup background-manager subscription gap; the final tests pass on all four versions. This does not establish every possible compositor timing scenario.
+- No separate CPU or memory benchmark is claimed. Event-driven behavior and the absence of recurring contrast timers on a stable desktop are tested.

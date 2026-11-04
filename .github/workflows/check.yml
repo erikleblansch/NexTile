@@ -7,5 +7,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - run: sudo apt-get update && sudo apt-get install -y gjs libglib2.0-bin
+      - run: sudo apt-get update && sudo apt-get install -y gjs libglib2.0-bin gettext
       - run: make pack
+  runtime:
+    name: GNOME ${{ matrix.shell }} Wayland
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: ['49', '50', '51']
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - run: bash tests/runtime-container.sh '${{ matrix.shell }}'

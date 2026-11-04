@@ -5,6 +5,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
+import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {NativeSearch} from './nativeSearch.js';
 
@@ -25,8 +26,8 @@ export class CompactSearch {
         this._root = new St.Widget({visible: false, reactive: true});
         this._surface = new St.Widget({style_class: 'nextile-search-surface', reactive: true,
             clip_to_allocation: true, layout_manager: new Clutter.BinLayout()});
-        this._entry = new St.Entry({style_class: 'nextile-search-entry', hint_text: 'Typ om te zoeken',
-            can_focus: true, x_expand: true, y_expand: true, accessible_name: 'Zoeken'});
+        this._entry = new St.Entry({style_class: 'nextile-search-entry', hint_text: _('Type to search'),
+            can_focus: true, x_expand: true, y_expand: true, accessible_name: _('Search')});
         this._entry.set_primary_icon(new St.Icon({icon_name: 'edit-find-symbolic', icon_size: 16}));
         this._clearIcon = new St.Icon({icon_name: 'edit-clear-symbolic', icon_size: 16});
         this._surface.add_child(this._entry);
@@ -84,7 +85,7 @@ export class CompactSearch {
         this._root.set_size(global.stage.width, global.stage.height);
         this._root.show();
         const grab = Main.pushModal(this._root, {actionMode: Shell.ActionMode.NORMAL});
-        if (grab.get_seat_state() !== Clutter.GrabState.ALL) {
+        if (grab.get_seat_state && grab.get_seat_state() !== Clutter.GrabState.ALL) {
             Main.popModal(grab);
             this._root.hide();
             return false;

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+<title id="title">NexTile</title><desc id="desc">Room for every window. Automatic tiling for GNOME.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0d1d2c"/><stop offset="1" stop-color="#174a48"/></linearGradient><linearGradient id="tile" x2="1" y2="1"><stop stop-color="#95f0cb"/><stop offset="1" stop-color="#43baa9"/></linearGradient></defs>
+<rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+<g transform="translate(80 72)"><rect width="80" height="176" rx="16" fill="url(#tile)"/><rect x="92" width="84" height="82" rx="16" fill="#d0f5e7"/><rect x="92" y="94" width="84" height="82" rx="16" fill="#438b87"/></g>
+<text x="304" y="147" fill="#effff9" font-family="sans-serif" font-size="68" font-weight="700" letter-spacing="-2">NexTile</text>
+<text x="307" y="197" fill="#b3d9d2" font-family="sans-serif" font-size="28">Room for every window.</text>
+<text x="308" y="240" fill="#75b6ad" font-family="sans-serif" font-size="17" letter-spacing="2">AUTOMATIC TILING FOR GNOME</text>
+<g fill="none" stroke="#82d9bd" stroke-opacity=".18"><rect x="940" y="-70" width="210" height="210" rx="32" transform="rotate(20 1045 35)"/><rect x="1010" y="190" width="210" height="210" rx="32" transform="rotate(20 1115 295)"/></g>
+</svg>

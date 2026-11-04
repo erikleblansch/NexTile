@@ -5,6 +5,7 @@ import Meta from 'gi://Meta';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {Layout, inset} from './layout.js';
 import {TileBorders} from './tileBorders.js';
+import {maximizeFlags, maximize, unmaximize} from './compatibility.js';
 
 const STARTUP_SETTLE_US = 1000000;
 
@@ -91,7 +92,7 @@ export class Tiler {
                 // Apps can restore their saved maximized state after mapping,
                 // including after our first resize. Normalize startup requests;
                 // subsequent deliberate maximization remains available.
-                if (this._original.has(window) && !this._isOpening(window) && window.get_maximized())
+                if (this._original.has(window) && !this._isOpening(window) && maximizeFlags(window))
                     this._maximized.add(window);
                 else
                     this._maximized.delete(window);
@@ -163,7 +164,7 @@ export class Tiler {
             // Mutter reports allows_resize() false while maximized, even for
             // a resizable app. Admit it so startup can actually unmaximize it.
             !window.minimized && !window.fullscreen &&
-            (window.allows_resize() || (window.get_maximized() && window.resizeable)) &&
+            (window.allows_resize() || (maximizeFlags(window) && window.resizeable)) &&
             window.allows_move() && window.get_compositor_private()?.visible &&
             !this._floating.has(window) && !this._maximized.has(window);
     }
@@ -246,10 +247,10 @@ export class Tiler {
                             if (this._opening.get(window) === 0)
                                 this._opening.set(window, GLib.get_monotonic_time() + STARTUP_SETTLE_US);
                             this._original.set(window, {rect: window.get_frame_rect(),
-                                maximized: opening ? 0 : window.get_maximized()});
+                                maximized: opening ? 0 : maximizeFlags(window)});
                         }
-                        if (window.get_maximized())
-                            window.unmaximize(Meta.MaximizeFlags.BOTH);
+                        if (maximizeFlags(window))
+                            unmaximize(window, Meta.MaximizeFlags.BOTH);
                         const current = window.get_frame_rect();
                         if (window !== this._resizeGrab?.window &&
                             ['x', 'y', 'width', 'height'].some(key => current[key] !== rect[key]))
@@ -461,7 +462,7 @@ export class Tiler {
         const y = Math.max(area.y, Math.min(saved.rect.y, area.y + area.height - height));
         window.move_resize_frame(false, x, y, width, height);
         if (saved.maximized)
-            window.maximize(saved.maximized);
+            maximize(window, saved.maximized);
     }
 
     stop(restore = true) {

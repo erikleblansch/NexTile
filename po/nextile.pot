@@ -1,0 +1,126 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the NexTile package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: NexTile 0.6.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-05 00:25+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: compactSearch.js:29
+msgid "Type to search"
+msgstr ""
+
+#: compactSearch.js:30
+msgid "Search"
+msgstr ""
+
+#: extension.js:21
+msgid "Room for every window"
+msgstr ""
+
+#: extension.js:22
+msgid "Window gaps"
+msgstr ""
+
+#: extension.js:28 extension.js:71
+msgid "Automatic"
+msgstr ""
+
+#: extension.js:28
+msgid "Side by side"
+msgstr ""
+
+#: extension.js:28
+msgid "Stacked"
+msgstr ""
+
+#: extension.js:29
+msgid "Split direction"
+msgstr ""
+
+#: extension.js:36
+msgid "Float active window"
+msgstr ""
+
+#: extension.js:39
+msgid "Reflow windows"
+msgstr ""
+
+#: extension.js:40
+msgid "Restore windows when tiling is off"
+msgstr ""
+
+#: extension.js:44
+msgid "Transparent top bar"
+msgstr ""
+
+#: extension.js:47
+msgid "Super opens search"
+msgstr ""
+
+#: extension.js:50
+msgid "Transparent terminal"
+msgstr ""
+
+#: extension.js:71
+msgid "Off"
+msgstr ""
+
+#: extension.js:72
+#, javascript-format
+msgid "Window gaps · %d px"
+msgstr ""
+
+#: extension.js:167
+msgid ""
+"Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use "
+"colors from system theme” in your Terminal profile."
+msgstr ""
+
+#: extension.js:176
+msgid ""
+"Could not update the terminal style. Check that your GTK configuration is "
+"writable and the NexTile CSS markers are intact."
+msgstr ""
+
+#: nativeSearch.js:84 nativeSearch.js:221
+msgid "Searching…"
+msgstr ""
+
+#: nativeSearch.js:221
+msgid "No results"
+msgstr ""
+
+#: panel.js:18
+msgid "Workspaces"
+msgstr ""
+
+#: panel.js:47
+#, javascript-format
+msgid "Workspace %d"
+msgstr ""
+
+#: panel.js:145
+#, javascript-format
+msgid "Workspace %d, active — open overview"
+msgstr ""
+
+#: panel.js:148
+#, javascript-format
+msgid "Switch to workspace %d"
+msgstr ""
+
+#: tileBorders.js:33
+msgid "Drag tile boundary"
+msgstr ""

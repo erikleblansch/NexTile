@@ -7,6 +7,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
+import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {workspaceFrames, luminance, contrastingInk, sampleBrightness} from './panelGeometry.js';
 
@@ -14,7 +15,7 @@ const WorkspaceRibbon = GObject.registerClass(
 class WorkspaceRibbon extends St.Widget {
     _init() {
         super._init({style_class: 'nextile-workspaces', reactive: true,
-            clip_to_allocation: true, accessible_name: 'Werkruimtes',
+            clip_to_allocation: true, accessible_name: _('Workspaces'),
             accessible_role: Atk.Role.PANEL});
         this._buttons = [];
         this._searchProgress = 0;
@@ -25,6 +26,10 @@ class WorkspaceRibbon extends St.Widget {
         this._position.connectObject('notify::value', () => this.queue_relayout(), this);
         this._adjustment.connectObject('notify::value', () => this._followPosition(),
             'notify::upper', () => this._syncCount(), this);
+        global.workspace_manager.connectObject('active-workspace-changed', () => {
+            if (this._searchProgress > 0)
+                this._followPosition();
+        }, this);
         this.connect('destroy', () => this._position.remove_transition('value'));
         this.connect('scroll-event', (_actor, event) => Main.wm.handleWorkspaceScroll(event));
         this._syncCount();
@@ -39,7 +44,7 @@ class WorkspaceRibbon extends St.Widget {
             const index = this._buttons.length;
             const button = new St.Button({style_class: 'nextile-workspace',
                 label: String(index + 1), can_focus: true, reactive: true,
-                accessible_name: `Werkruimte ${index + 1}`,
+                accessible_name: _('Workspace %d').format(index + 1),
                 accessible_role: Atk.Role.PUSH_BUTTON});
             button.connect('clicked', () => {
                 if (global.workspace_manager.get_active_workspace_index() === index)
@@ -54,6 +59,20 @@ class WorkspaceRibbon extends St.Widget {
     }
 
     _followPosition() {
+        if (this._searchProgress > 0) {
+            // Search owns a modal grab: scrolling selects a discrete workspace.
+            // Newer Shells briefly publish the target before their animation
+            // publishes intermediate values. Use one animation to that target
+            // so those two streams cannot pull the expanded ribbon backward.
+            const target = global.workspace_manager.get_active_workspace_index();
+            if (target === this._searchTarget)
+                return;
+            this._searchTarget = target;
+            this._position.remove_transition('value');
+            this._position.ease(target, {duration: 360, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+            return;
+        }
+        this._searchTarget = null;
         const value = this._adjustment.value;
         this._position.remove_transition('value');
         // Follow continuous touchpad/overview motion directly. A direct jump
@@ -123,10 +142,10 @@ class WorkspaceRibbon extends St.Widget {
                 button.set_style(style);
             if (index === active) {
                 button.add_style_pseudo_class('active');
-                button.accessible_name = `Werkruimte ${index + 1}, actief — overzicht openen`;
+                button.accessible_name = _('Workspace %d, active — open overview').format(index + 1);
             } else {
                 button.remove_style_pseudo_class('active');
-                button.accessible_name = `Naar werkruimte ${index + 1}`;
+                button.accessible_name = _('Switch to workspace %d').format(index + 1);
             }
         });
     }
@@ -192,6 +211,12 @@ export class PanelAppearance {
         this._connect(Main.layoutManager, 'monitors-changed', () => {
             this._watchBackgrounds();
             this._ribbon.queue_relayout();
+            this.queueContrast();
+        });
+        // Shell recreates BackgroundManagers during startup, after extensions
+        // can already be enabled. Subscribe to those final instances as well.
+        this._connect(Main.layoutManager, 'startup-complete', () => {
+            this._watchBackgrounds();
             this.queueContrast();
         });
         this._connect(Main.sessionMode, 'updated', () => {
