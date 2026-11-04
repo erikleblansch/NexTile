@@ -6,7 +6,7 @@ test_dir=$(mktemp -d /tmp/nextile-runtime.XXXXXX)
 echo "Runtime evidence: $test_dir"
 mkdir -p "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io" "$test_dir/config" "$test_dir/runtime"
 chmod 700 "$test_dir/runtime"
-cp "$repo_dir/"{extension.js,layout.js,tiler.js,panel.js,panelGeometry.js,compactSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
+cp "$repo_dir/"{extension.js,layout.js,tiler.js,panel.js,panelGeometry.js,compactSearch.js,nativeSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 cp -r "$repo_dir/schemas" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 glib-compile-schemas --strict "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/schemas"
 cp -r "$repo_dir/tests/driver" "$test_dir/data/gnome-shell/extensions/nextile-test@local"
@@ -30,6 +30,7 @@ timeout 120s dbus-run-session -- bash -c '
     gsettings set org.gnome.shell enabled-extensions "['\''nextile@erikleblansch.github.io'\'', '\''nextile-test@local'\'']"
     gsettings set org.gnome.shell welcome-dialog-last-shown-version "48.0"
     gsettings set org.gnome.desktop.interface enable-animations false
+    gsettings set org.gnome.desktop.search-providers disable-external true
     xephyr_pid=""
     if [ "$NEXTILE_TEST_BACKEND" = x11 ]; then
         Xephyr -displayfd 3 -screen 1280x800 -nolisten tcp -noreset 3> "$XDG_RUNTIME_DIR/display" > "$XDG_RUNTIME_DIR/xephyr.log" 2>&1 &

@@ -191,7 +191,7 @@ export default class TestDriver extends Extension {
             appearance._windowSignals.size === 0 && !Main.panel.has_style_class_name('nextile-panel') &&
             Main.panel.statusArea.dateMenu.container.get_parent() === Main.panel._centerBox &&
             Main.panel.statusArea.activities.container.visible, 'Disable restores native panel and releases panel resources');
-        assert(search._destroyed && !search._timeout && !search._grab && !search._nativeHandler &&
+        assert(search._destroyed && !search._results._timeout && !search._grab && !search._nativeHandler &&
             search._signals.length === 0, 'Disable removes search modal, signals and restores Super handler');
         await Main.extensionManager.enableExtension('nextile@erikleblansch.github.io');
         await delay(600);
@@ -203,6 +203,28 @@ export default class TestDriver extends Extension {
 
     async _searchTests(ext, assert) {
         const search = ext._search;
+        const background = new Gio.Settings({schema_id: 'org.gnome.desktop.background'});
+        background.set_string('picture-options', 'none');
+        background.set_string('primary-color', '#0b5e63');
+        let activatedRemote = null;
+        let launchedTerms = null;
+        const remote = {
+            id: 'nextile-fixture-provider', appInfo: Gio.DesktopAppInfo.new('nextile-search-Alpha.desktop'),
+            canLaunchSearch: true,
+            async getInitialResultSet(terms) {
+                await delay(80);
+                return terms.join(' ').includes('zoektest') ? Array.from({length: 8}, (_, i) => `document-${i}`) : [];
+            },
+            async getResultMetas(ids) {
+                return ids.map(id => ({id, name: `Zoektest ${id}`, description: 'Een resultaat van de ingestelde zoekprovider',
+                    createIcon: size => new St.Icon({icon_name: 'text-x-generic', icon_size: size})}));
+            },
+            filterResults: (ids, max) => ids.slice(0, max),
+            activateResult: id => { activatedRemote = id; },
+            launchSearch: terms => { launchedTerms = terms.join(' '); },
+        };
+        Main.overview.searchController.addProvider(remote);
+        const nativeRemoteDisplay = remote.display;
         const mutter = new Gio.Settings({schema_id: 'org.gnome.mutter'});
         const preferences = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
         mutter.set_boolean('dynamic-workspaces', false);
@@ -232,12 +254,21 @@ export default class TestDriver extends Extension {
         assert(Math.abs(search._surface.width - search._target.width) < 1,
             'Search surface expands from pill to final bar width');
         assert(expanding, 'Search expansion includes intermediate animation frames');
+        const ribbon = ext._appearance._ribbon;
+        const [surfaceX, surfaceY] = search._surface.get_transformed_position();
+        const [neighborX] = ribbon._buttons[1].get_transformed_position();
+        assert(surfaceY >= 0 && surfaceY + search._surface.height <= Main.panel.height,
+            'Search replaces the active pill inside the top bar');
+        assert(ribbon._buttons[0].opacity === 0 && neighborX >= surfaceX + search._surface.width + 6,
+            'Active pill is replaced and neighboring workspace circles move aside');
+        assert(search._root.get_theme_node().get_background_color().alpha === 0,
+            'Search overlay has no desktop backdrop');
         const monitor = Main.layoutManager.primaryMonitor;
         const stream = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.search.png`)
             .replace(null, false, Gio.FileCreateFlags.NONE, null);
         const screenshot = new Shell.Screenshot();
         await new Promise((resolve, reject) => screenshot.screenshot_area(monitor.x, monitor.y,
-            monitor.width, Math.ceil(search._backdrop.height + 32), stream, (source, result) => {
+            monitor.width, Math.ceil(Main.panel.height + 72), stream, (source, result) => {
                 try { source.screenshot_area_finish(result); resolve(); } catch (error) { reject(error); }
             }));
         stream.close(null);
@@ -245,12 +276,25 @@ export default class TestDriver extends Extension {
             await press(letter.charCodeAt(0));
         await delay(500);
         assert(search._entry.get_text() === 'zoektest', 'Typing after Super enters the query directly');
-        assert(search._rows.length === 2 && search._rows.every(row => row.id.startsWith('nextile-search-')),
+        assert(search._results._rows.filter(row => row.id.startsWith('nextile-search-')).length === 2,
             'Native GNOME app search finds installed fixture applications');
+        const section = search._results._sections.get(remote).display;
+        assert(section._content.get_n_children() === 5 && section.providerInfo._moreLabel.text.includes('3'),
+            'Native provider layout shows five results and the remaining count');
+        assert(section._container.get_theme_node().get_background_color().alpha === 0,
+            'Provider category cards have transparent backgrounds');
+        assert(remote.display === nativeRemoteDisplay, 'Overview provider widgets remain untouched');
+        const resultStream = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.results.png`)
+            .replace(null, false, Gio.FileCreateFlags.NONE, null);
+        await new Promise((resolve, reject) => screenshot.screenshot_area(monitor.x, monitor.y,
+            monitor.width, monitor.height, resultStream, (source, result) => {
+                try { source.screenshot_area_finish(result); resolve(); } catch (error) { reject(error); }
+            }));
+        resultStream.close(null);
         await press(Clutter.KEY_Down);
-        assert(search._selected === 1, 'Down selects next application');
+        assert(search._results._selected === 1, 'Down selects next application');
         await press(Clutter.KEY_Up);
-        assert(search._selected === 0, 'Up selects previous application');
+        assert(search._results._selected === 0, 'Up selects previous application');
         const pointer = Clutter.get_default_backend().get_default_seat()
             .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
         pointer.notify_absolute_motion(GLib.get_monotonic_time(), monitor.x + monitor.width / 2,
@@ -261,6 +305,12 @@ export default class TestDriver extends Extension {
         assert(global.workspace_manager.get_active_workspace_index() === 1 && search._open &&
             search._entry.get_text() === 'zoektest' && search._entry.clutter_text.has_key_focus(),
         'Real mouse wheel changes workspace while retaining search and focus');
+        const [leftX] = ribbon._buttons[0].get_transformed_position();
+        const [rightX] = ribbon._buttons[2].get_transformed_position();
+        assert(ribbon._buttons[1].opacity === 0 &&
+            leftX + ribbon._buttons[0].width <= surfaceX - 6 && rightX >= surfaceX + search._surface.width + 6 &&
+            Math.abs(search._surface.x + search._surface.width / 2 - monitor.x - monitor.width / 2) < 1,
+        'Workspace scrolling keeps search centered and moves the other circles around it');
         await press(Clutter.KEY_Return);
         await delay(1000);
         const launched = global.get_window_actors().map(actor => actor.meta_window)
@@ -271,6 +321,18 @@ export default class TestDriver extends Extension {
             'Application launches on selected workspace and modal grab is released');
         launched.delete(global.get_current_time());
         await delay(300);
+        search.open();
+        search._entry.set_text('zoektest');
+        await delay(500);
+        search._results._rows.find(row => row.id === 'document-0').button.activate();
+        assert(activatedRemote === 'document-0' && !search._open && !Main.overview.visible,
+            'Native provider result activates and closes search without opening Overview');
+        search.open();
+        search._entry.set_text('zoektest');
+        await delay(500);
+        search._results._sections.get(remote).display.providerInfo.emit('clicked', 1);
+        assert(launchedTerms === 'zoektest' && !search._open && !Main.overview.visible,
+            'Provider header opens full provider search without opening Overview');
         await press(Clutter.KEY_Super_L);
         await press(Clutter.KEY_Escape);
         await delay(300);
@@ -289,14 +351,16 @@ export default class TestDriver extends Extension {
         search._entry.set_text('zoektest');
         search._entry.set_text('nextile-query-with-no-results');
         await delay(400);
-        assert(search._rows.length === 0 && search._results.visible,
+        assert(search._results._rows.length === 0 && search._results.visible,
             'New query replaces old results and shows empty-result feedback');
         search._entry.set_text('zoektest');
         search.close(false);
         await delay(300);
-        assert(!search._timeout && search._rows.length === 0 && !search._results.visible,
+        assert(!search._results._timeout && search._results._rows.length === 0 && !search._results.visible,
             'Closing cancels queued searches and prevents results returning');
-        const provider = search._provider;
+        assert(ext._appearance._ribbon._searchProgress === 0, 'Closing restores original workspace spacing');
+        Main.overview.searchController.removeProvider(remote);
+        const provider = Main.overview.searchController._searchResults._providers.find(p => p.id === 'applications');
         const getResults = provider.getInitialResultSet;
         provider.getInitialResultSet = async function (...args) {
             await delay(350);
@@ -304,8 +368,8 @@ export default class TestDriver extends Extension {
         };
         search.open();
         search._entry.set_text('zoektest');
-        await delay(150);
-        assert(!!search._cancellable, 'Delayed application provider has an in-flight search');
+        await delay(200);
+        assert(!!search._results._pending, 'Delayed application provider has an in-flight search');
         await press(Clutter.KEY_Return);
         await delay(1000);
         const fastLaunch = global.get_window_actors().map(actor => actor.meta_window)
@@ -320,8 +384,9 @@ export default class TestDriver extends Extension {
         await delay(600);
         assert(!ext._search && !search._grab && !search._nativeHandler && Main.modalCount === modalCount,
             'Search setting disables cleanly even while the bar is open');
-        assert(search._rows.length === 0 && !search._cancellable,
+        assert(search._results._rows.length === 0 && !search._results._pending,
             'Disabling during an in-flight search discards late results');
+        provider.getInitialResultSet = getResults;
         await press(Clutter.KEY_Super_L);
         await delay(700);
         assert(Main.overview.visible, 'Disabling compact search restores native Super overview');

@@ -140,7 +140,8 @@ export default class NexTileExtension extends Extension {
         if (this._settings.get_boolean('search-enabled')) {
             this._search ??= new CompactSearch(
                 () => this._appearance?.getActivePillRect(),
-                () => this._appearance?.queueContrast());
+                () => this._appearance?.queueContrast(),
+                (progress, width) => this._appearance?.setSearchExpansion(progress, width));
         } else {
             this._search?.destroy();
             this._search = null;

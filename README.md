@@ -10,9 +10,11 @@ Vanaf **0.2.0** heeft NexTile ook een transparante bovenbalk: de klok staat link
 
 ![Transparante bovenbalk met de klok links en genummerde werkruimtes in het midden, op een lichte en donkere testachtergrond](docs/topbar.png)
 
-Vanaf **0.3.0** opent één druk op **Super** een compacte zoekbalk die vanuit de actieve werkruimtepil groeit. Het bureaublad blijft zichtbaar. Typ meteen een programmanaam en wissel tijdens het zoeken met het muiswiel van werkruimte.
+Vanaf **0.4.0** verandert de actieve werkruimtepil bij **Super** op zijn eigen plek in een zoekbalk. De andere werkruimteknoppen schuiven opzij. Daaronder verschijnen GNOME's gewone programma-iconen en categorieën met zoekresultaten, boven het zichtbare bureaublad en zonder grijze achtergrondvlakken.
 
-![Compact zoeken vanuit de actieve werkruimtepil](docs/search.png)
+![Zoekbalk op de plek van de actieve pil](docs/search.png)
+
+![Native programma-iconen en providerresultaten op een transparante achtergrond](docs/search-results.png)
 
 ```text
        1 venster             2 vensters            3 vensters
@@ -51,7 +53,7 @@ Open het systeemmenu rechtsboven. Klik op **NexTile** om automatisch tegelen aan
 | Opnieuw indelen | Bouwt de indelingen opnieuw op met de gekozen splitsrichting. Zwevende vensters blijven zweven. |
 | Vensters herstellen bij uitschakelen | Herstelt de oorspronkelijke afmetingen en positie bij uitschakelen; standaard aan. |
 | Transparante bovenbalk | Schakelt de aangepaste balk, kleurkeuze en werkruimte-indicator samen aan/uit, onafhankelijk van automatisch tegelen. |
-| Super opent zoeken | Opent de compacte programmazoeker met Super; standaard aan. Uitzetten herstelt het gewone Activiteitenoverzicht met Super. |
+| Super opent zoeken | Opent de zoekbalk in de bovenbalk met Super; standaard aan. Uitzetten herstelt het gewone Activiteitenoverzicht met Super. |
 
 Sleep een tegel naar het midden van een andere tegel om ze te verwisselen. Handmatig vergroten/verkleinen van een tegel springt na loslaten terug naar de tegelmaat. Laat een venster zweven voor vrije plaatsing.
 
@@ -73,14 +75,16 @@ Deze kleurmeting schrijft geen screenshots naar schijf en verstuurt niets. Ze re
 
 ## Zoeken met Super
 
-Druk op **Super** en begin te typen. Alleen de zoekbalk verschijnt; resultaten volgen zodra je zoekt. NexTile gebruikt GNOME's eigen programmazoeker, inclusief trefwoorden, gebruiksvolgorde en ouderlijk toezicht. Er worden maximaal zes programma's getoond; verfijn de zoektekst voor andere resultaten. Bestanden, internetzoekdiensten en systeemacties horen niet bij deze compacte programmazoeker.
+Druk op **Super** en begin te typen. De actieve pil wordt tijdelijk de zoekbalk; de andere rondjes houden hun formaat en maken vloeiend ruimte. Bij sluiten krimpt de balk terug en sluit de werkruimterij weer aan.
 
-- **Enter** opent het geselecteerde programma; **↑/↓** of **Tab/Shift+Tab** kiezen een ander resultaat. Klikken op een resultaat werkt ook.
-- **Muiswiel** wisselt van werkruimte zolang de zoekmodus open is, met behoud van de zoektekst en toetsenbordfocus. Een nieuw programmavenster opent op de gekozen werkruimte; een al geopend programma volgt GNOME's normale activeergedrag.
-- **Escape**, opnieuw **Super** of klikken buiten de zoekbalk/resultaten sluit de zoekmodus.
+De resultaten gebruiken GNOME's eigen raster voor programma's en lijsten per zoekprovider, met pictogrammen, beschrijvingen en de knop voor meer resultaten. Ze volgen de providers en volgorde uit **GNOME Instellingen → Zoeken**, inclusief door extensies geregistreerde providers. Er verschijnen dus ook bestanden, instellingen en andere categorieën die je gewoonlijk in het Activiteitenoverzicht ziet. De algemene achtergrond en categoriepanelen zijn transparant; het bureaublad blijft zichtbaar.
+
+- **Enter** opent het geselecteerde resultaat; **↑/↓** of **Tab/Shift+Tab** kiezen een ander resultaat. Klikken op een resultaat werkt ook. Klik op de providernaam om verder te zoeken in die app.
+- **Muiswiel** wisselt van werkruimte zolang de zoekmodus open is, met behoud van zoektekst en toetsenbordfocus. Een nieuw programmavenster opent op de gekozen werkruimte; een al geopend programma volgt GNOME's normale activeergedrag.
+- **Escape**, opnieuw **Super** of klikken buiten de zoekbalk/resultaten sluit de zoekmodus. Het kruisje wist de zoektekst.
 - Het volledige Activiteitenoverzicht blijft bereikbaar door op het actieve werkruimtenummer te klikken. Met de aangepaste bovenbalk uit blijft de gewone Activiteitenknop beschikbaar.
 
-De zoekmodus werkt onafhankelijk van tegelen en de bovenbalk. Zonder aangepaste pil begint de animatie midden bovenaan. Uitschakelen herstelt GNOME's oorspronkelijke Super-afhandeling, zonder blijvende wijzigingen aan sneltoetsen.
+De zoekmodus werkt onafhankelijk van tegelen en de bovenbalk. Zonder aangepaste werkruimterij groeit de zoekbalk midden bovenaan. Uitschakelen herstelt GNOME's oorspronkelijke Super-afhandeling, zonder blijvende wijzigingen aan sneltoetsen.
 
 ## Compatibiliteit en controle
 
@@ -103,10 +107,10 @@ Zie [de testresultaten](docs/VALIDATION.md) voor de daadwerkelijk gecontroleerde
 - GNOME-signalen activeren de indeling. Meldingen worden gedurende 40 ms samengevoegd; er is geen periodieke polling.
 - Een enkele controle na 250 ms vangt minimumafmetingen van apps op.
 - De bovenbalk bundelt kleurmetingen gedurende 450 ms; op een stabiele desktop draait hiervoor geen timer.
-- Zoeken bundelt toetsaanslagen gedurende 100 ms. Een gesloten zoekmodus heeft geen zoektimer; verouderde asynchrone resultaten worden genegeerd.
+- Zoeken bundelt toetsaanslagen gedurende 150 ms. Een gesloten zoekmodus heeft geen zoektimer; verouderde asynchrone resultaten worden genegeerd.
 - Alleen gewijzigde geometrie wordt aan Mutter doorgegeven. Tijdens slepen wacht de indeling op het loslaten.
 - Uitschakelen verwijdert alle eigen signalen, timers en menuonderdelen. Herstel respecteert de huidige werkruimte en houdt vensters binnen het huidige scherm.
-- Geen netwerkverkeer, telemetrie, shellcommando's of extra processen vanuit de extensie.
+- Geen eigen achtergrondservice, telemetrie of shellcommando's. Zoekopdrachten gaan naar de ingeschakelde GNOME-zoekproviders; die kunnen hun eigen apps of diensten activeren, net als in het Activiteitenoverzicht.
 
 De native menubediening volgt de [GNOME Quick Settings-API](https://gjs.guide/extensions/topics/quick-settings.html); vensterplaatsing gebruikt de [Mutter Meta.Window-API](https://mutter.gnome.org/meta/class.Window.html). De geïnstalleerde GNOME 48-API en runtime-tests bepalen de ondersteunde versie.
 

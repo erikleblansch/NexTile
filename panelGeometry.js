@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Pure helpers shared by the panel and its tests.
-export function workspaceFrames(count, position, viewport, scale = 1) {
+export function workspaceFrames(count, position, viewport, scale = 1, activeWidth = 48) {
     if (!count)
         return [];
     const value = Math.max(0, Math.min(count - 1, position));
@@ -8,7 +8,7 @@ export function workspaceFrames(count, position, viewport, scale = 1) {
     const frames = Array.from({length: count}, (_, index) => {
         const proximity = Math.max(0, 1 - Math.abs(index - value));
         const expansion = proximity * proximity * (3 - 2 * proximity);
-        const width = (24 + 24 * expansion) * scale;
+        const width = (24 + (activeWidth - 24) * expansion) * scale;
         const frame = {x: cursor, width, expansion};
         cursor += width + 8 * scale;
         return frame;

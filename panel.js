@@ -17,6 +17,8 @@ class WorkspaceRibbon extends St.Widget {
             clip_to_allocation: true, accessible_name: 'Werkruimtes',
             accessible_role: Atk.Role.PANEL});
         this._buttons = [];
+        this._searchProgress = 0;
+        this._searchWidth = 440;
         this._adjustment = Main.createWorkspacesAdjustment(this);
         this._position = new St.Adjustment({actor: this, lower: 0,
             upper: this._adjustment.upper, page_size: 1, value: this._adjustment.value});
@@ -70,7 +72,12 @@ class WorkspaceRibbon extends St.Widget {
 
     vfunc_get_preferred_width() {
         const monitor = Main.layoutManager.primaryMonitor;
-        const width = Math.min(280 * this._scale(), (monitor?.width ?? 1280) * 0.28);
+        const scale = this._scale();
+        const side = Math.max(Main.panel._leftBox.width, Main.panel._rightBox.width);
+        const available = Math.max(280 * scale, (monitor?.width ?? 1280) - 2 * side - 32 * scale);
+        const width = this._searchProgress > 0
+            ? Math.min(available, (this._searchWidth + 192) * scale)
+            : Math.min(280 * scale, (monitor?.width ?? 1280) * 0.28);
         return [width, width];
     }
 
@@ -83,7 +90,8 @@ class WorkspaceRibbon extends St.Widget {
         const width = box.x2 - box.x1;
         const height = box.y2 - box.y1;
         const scale = this._scale();
-        const frames = workspaceFrames(this._buttons.length, this._position.value, width, scale);
+        const activeWidth = 48 + (this._searchWidth - 48) * this._searchProgress;
+        const frames = workspaceFrames(this._buttons.length, this._position.value, width, scale, activeWidth);
         const active = global.workspace_manager.get_active_workspace_index();
         const [stageX] = this.get_transformed_position();
         frames.forEach((frame, index) => {
@@ -97,6 +105,11 @@ class WorkspaceRibbon extends St.Widget {
             // Fade at the edges without changing the center or growing the panel.
             const edge = Math.min(frame.x + frame.width / 2, width - frame.x - frame.width / 2);
             button.opacity = Math.round(255 * Math.max(0, Math.min(1, edge / (28 * scale))));
+            if (this._searchProgress > 0) {
+                const center = frame.x + frame.width / 2;
+                if (index === active || Math.abs(center - width / 2) < activeWidth * scale / 2)
+                    button.opacity = 0;
+            }
             button.reactive = edge > 0;
             button.can_focus = edge > 0;
             const brightness = this._sample ? sampleBrightness(this._sample, stageX + frame.x, frame.width) : null;
@@ -125,6 +138,12 @@ class WorkspaceRibbon extends St.Widget {
 
     setInk(ink) {
         this._ink = ink;
+        this.queue_relayout();
+    }
+
+    setSearchExpansion(progress, width) {
+        this._searchProgress = progress;
+        this._searchWidth = width;
         this.queue_relayout();
     }
 
@@ -209,7 +228,12 @@ export class PanelAppearance {
             return null;
         const [x, y] = button.get_transformed_position();
         const [width, height] = button.get_transformed_size();
-        return {x, y, width, height};
+        return {x, y, width, height, ink: button._ink};
+    }
+
+    setSearchExpansion(progress, width) {
+        if (!this._destroyed)
+            this._ribbon.setSearchExpansion(progress, width);
     }
 
     _moveClock() {

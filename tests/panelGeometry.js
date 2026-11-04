@@ -47,4 +47,18 @@ for (let step = 1; step <= 500; step++) {
     });
     previous = frames;
 }
+for (const scale of [1, 2]) {
+    for (const activeWidth of [48, 120, 270, 440]) {
+        for (let active = 0; active < 8; active++) {
+            const frames = workspaceFrames(8, active, 700 * scale, scale, activeWidth);
+            assert(frames[active].width === activeWidth * scale, 'Morph uses current search width');
+            assert(frames[active].x + frames[active].width / 2 === 350 * scale, 'Expanded search stays centered');
+            frames.forEach((frame, i) => {
+                if (i !== active) assert(frame.width === 24 * scale, 'Neighbors remain circles during morph');
+                if (i) assert(frame.x - frames[i - 1].x - frames[i - 1].width === 8 * scale,
+                    'Search expansion pushes neighbors without overlap');
+            });
+        }
+    }
+}
 print(`PASS: ${checks} panel geometry and contrast assertions`);
