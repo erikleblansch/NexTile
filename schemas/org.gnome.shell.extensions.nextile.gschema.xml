@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.nextile" path="/org/gnome/shell/extensions/nextile/">
+    <key name="tiling-enabled" type="b">
+      <default>true</default>
+      <summary>Automatically tile windows</summary>
+    </key>
+    <key name="gap" type="i">
+      <default>8</default>
+      <range min="0" max="32"/>
+      <summary>Space between windows in logical pixels</summary>
+    </key>
+    <key name="split-mode" type="s">
+      <default>'auto'</default>
+      <choices><choice value="auto"/><choice value="horizontal"/><choice value="vertical"/></choices>
+      <summary>Split along the longest side, side by side, or stacked</summary>
+    </key>
+    <key name="restore-on-disable" type="b">
+      <default>true</default>
+      <summary>Restore window sizes when tiling is switched off</summary>
+    </key>
+  </schema>
+</schemalist>

@@ -1,0 +1,36 @@
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: GTK window NexTile A mapped
+PASS: First window fills work area with outer gap
+PASS: GTK window NexTile B mapped
+PASS: Second window halves largest tile
+PASS: GTK window NexTile C mapped
+PASS: Third window splits longest side
+PASS: Unrelated tile remains stable
+PASS: Closing restores sibling space
+PASS: Minimize releases tile
+PASS: Unminimize rejoins tiling
+PASS: Fullscreen is respected
+PASS: Fullscreen exit rejoins tiling
+PASS: Floating releases tile
+PASS: Floating off rejoins tiling
+PASS: Gap changes apply immediately
+PASS: Split orientation and reflow work
+PASS: Manual maximize is respected
+PASS: Manual unmaximize rejoins tiling
+PASS: GTK window NexTile minimum size mapped
+PASS: Client minimum size floats incompatible window
+PASS: Second workspace is available
+PASS: Moving to another workspace releases source tile
+PASS: Destination workspace has independent layout
+PASS: Returning to workspace tiles again
+PASS: Drop geometry swaps tile positions
+PASS: Quick Settings dropdown opens with gap choices
+PASS: Dropdown retains the active app window while Shell has focus
+PASS: Floating action works from the open dropdown
+PASS: Dropdown returns active window to tiling
+PASS: Toggle off disconnects signals and removes sources
+PASS: Toggle off restores original window size
+PASS: Toggle on retiles existing windows
+PASS: Extension disable destroys UI and all owned resources
+PASS: Extension can be enabled again
