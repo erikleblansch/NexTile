@@ -7,6 +7,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as QuickSettings from 'resource:///org/gnome/shell/ui/quickSettings.js';
 import {Tiler} from './tiler.js';
+import {PanelAppearance} from './panel.js';
 
 const NexTileToggle = GObject.registerClass(
 class NexTileToggle extends QuickSettings.QuickMenuToggle {
@@ -37,6 +38,10 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this._restore = new PopupMenu.PopupSwitchMenuItem('Vensters herstellen bij uitschakelen', true);
         this._restore.connect('toggled', (_item, state) => settings.set_boolean('restore-on-disable', state));
         this.menu.addMenuItem(this._restore);
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this._panelSwitch = new PopupMenu.PopupSwitchMenuItem('Transparante bovenbalk', true);
+        this._panelSwitch.connect('toggled', (_item, state) => settings.set_boolean('panel-enabled', state));
+        this.menu.addMenuItem(this._panelSwitch);
         this._changedId = settings.connect('changed', () => this._sync());
         this._focusId = global.display.connect('notify::focus-window', () => this._rememberFocus());
         this._rememberFocus();
@@ -58,6 +63,7 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         for (const [value, item] of this._splitItems)
             item.setOrnament(value === mode ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE);
         this._restore.setToggleState(this._settings.get_boolean('restore-on-disable'));
+        this._panelSwitch.setToggleState(this._settings.get_boolean('panel-enabled'));
         this._float.setToggleState(this._tiler.isFloating(this._focus));
         this._float.setSensitive(enabled && !!this._focus &&
             this._focus.get_window_type() === Meta.WindowType.NORMAL);
@@ -105,8 +111,20 @@ export default class NexTileExtension extends Extension {
                 this._sync();
             else if (key === 'gap' || key === 'split-mode')
                 this._tiler.queue();
+            else if (key === 'panel-enabled')
+                this._syncPanel();
         });
+        this._syncPanel();
         this._sync();
+    }
+
+    _syncPanel() {
+        if (this._settings.get_boolean('panel-enabled'))
+            this._appearance ??= new PanelAppearance();
+        else {
+            this._appearance?.destroy();
+            this._appearance = null;
+        }
     }
 
     _sync() {
@@ -118,6 +136,8 @@ export default class NexTileExtension extends Extension {
 
     disable() {
         this._settings?.disconnect(this._settingsId);
+        this._appearance?.destroy();
+        this._appearance = null;
         this._tiler?.stop();
         this._toggle?.destroy();
         this._indicator?.destroy();

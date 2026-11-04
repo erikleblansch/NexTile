@@ -6,6 +6,10 @@ NexTile deelt bij een nieuw venster de **grootste tegel in tweeën**. De overige
 
 ![NexTile-instellingen in het GNOME Quick Settings-uitklapmenu](docs/quick-settings.png)
 
+Vanaf **0.2.0** heeft NexTile ook een transparante bovenbalk: de klok staat links, genummerde werkruimtes staan in het midden en tekst en pictogrammen kiezen automatisch zwart of wit op basis van de zichtbare achtergrond.
+
+![Transparante bovenbalk met de klok links en genummerde werkruimtes in het midden, op een lichte en donkere testachtergrond](docs/topbar.png)
+
 ```text
        1 venster             2 vensters            3 vensters
     ┌─────────────┐      ┌──────┬──────┐       ┌──────┬──────┐
@@ -42,12 +46,25 @@ Open het systeemmenu rechtsboven. Klik op **NexTile** om automatisch tegelen aan
 | Actief venster laten zweven | Haalt het actieve venster uit de indeling en herstelt zijn oorspronkelijke maat. Nogmaals schakelen voegt het weer toe. |
 | Opnieuw indelen | Bouwt de indelingen opnieuw op met de gekozen splitsrichting. Zwevende vensters blijven zweven. |
 | Vensters herstellen bij uitschakelen | Herstelt de oorspronkelijke afmetingen en positie bij uitschakelen; standaard aan. |
+| Transparante bovenbalk | Schakelt de aangepaste balk, kleurkeuze en werkruimte-indicator samen aan/uit, onafhankelijk van automatisch tegelen. |
 
 Sleep een tegel naar het midden van een andere tegel om ze te verwisselen. Handmatig vergroten/verkleinen van een tegel springt na loslaten terug naar de tegelmaat. Laat een venster zweven voor vrije plaatsing.
 
 Elke combinatie van scherm en werkruimte heeft een eigen indeling. Staat GNOME ingesteld op werkruimtes alleen op het hoofdscherm, dan behouden de andere schermen één gedeelde indeling. Minimaliseren en fullscreen maken tijdelijk ruimte vrij; terugkeren voegt het venster opnieuw toe. Handmatig maximaliseren wordt gerespecteerd. Bij de eerste inschakeling worden bestaande normale vensters, ook gemaximaliseerde, meegenomen.
 
 Dialoogvensters, vaste venstermaten en hulppanelen blijven vrij. Vensters op alle werkruimtes blijven eveneens vrij, behalve op schermen met een gedeelde indeling. Als een app niet in een tegel past door zijn minimumafmetingen, wordt hij na een korte controle automatisch zwevend. De kleinste aangeboden tegel is 120 × 80 logische pixels. Zwevende vensters kunnen bewust boven tegels liggen. Hun status geldt voor de huidige inschakelperiode; de instellingen worden permanent opgeslagen.
+
+## Bovenbalk en werkruimtes
+
+De balk is 36 logische pixels hoog. De datum en tijd staan links; klikken opent de gewone GNOME-kalender. In het midden staan genummerde rondjes van 24 pixels. De actieve werkruimte is een pil van 48 pixels breed, precies in het midden van het scherm.
+
+Klik op een nummer om die werkruimte te openen. Klik op het actieve nummer voor het Activiteitenoverzicht. Scrollen over de indicator wisselt van werkruimte. Bij wisselen schuift de rij vloeiend mee en verandert het rondje in een pil. Touchpadbewegingen volgen de door GNOME aangeleverde voortgang; directe wisselingen krijgen een korte, uitlopende animatie. De normale GNOME-instelling voor verminderde animaties wordt gerespecteerd.
+
+Het aantal knoppen volgt GNOME, ook bij dynamisch toegevoegde of verwijderde werkruimtes. Lange rijen vervagen aan de randen en worden afgeknipt, zodat de klok en systeemknoppen hun plek houden. Ook de eerste en laatste actieve werkruimte blijven gecentreerd.
+
+De tekstkleur wordt per balkonderdeel en werkruimteknop gekozen. Daarvoor leest NexTile bij veranderingen twee pixelrijen aan de bovenrand van de transparante balk in het geheugen. De relatieve helderheid bepaalt zwart of wit; een kleine omschakelmarge voorkomt knipperen. Tijdens het schuiven gebruiken de rondjes dezelfde kleurmeting op hun nieuwe positie. Een subtiele tekstschaduw helpt bij onrustige achtergronden.
+
+Deze kleurmeting schrijft geen screenshots naar schijf en verstuurt niets. Ze reageert op achtergrond-, venster-, werkruimte- en schermwijzigingen, zonder periodieke polling. Continu bewegende videoachtergronden worden daarom niet per videoframe gevolgd. Uitschakelen herstelt de oorspronkelijke klokpositie, Activiteitenknop, balkhoogte en kleuren.
 
 ## Compatibiliteit en controle
 
@@ -69,6 +86,7 @@ Zie [de testresultaten](docs/VALIDATION.md) voor de daadwerkelijk gecontroleerde
 - Een binaire boom bewaart de splitsingen. Toevoegen verandert alleen de grootste tegel; verwijderen trekt de overgebleven tak op.
 - GNOME-signalen activeren de indeling. Meldingen worden gedurende 40 ms samengevoegd; er is geen periodieke polling.
 - Een enkele controle na 250 ms vangt minimumafmetingen van apps op.
+- De bovenbalk bundelt kleurmetingen gedurende 450 ms; op een stabiele desktop draait hiervoor geen timer.
 - Alleen gewijzigde geometrie wordt aan Mutter doorgegeven. Tijdens slepen wacht de indeling op het loslaten.
 - Uitschakelen verwijdert alle eigen signalen, timers en menuonderdelen. Herstel respecteert de huidige werkruimte en houdt vensters binnen het huidige scherm.
 - Geen netwerkverkeer, telemetrie, shellcommando's of extra processen vanuit de extensie.

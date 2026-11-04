@@ -7,7 +7,7 @@ import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 NAME = "nextile@erikleblansch.github.io.shell-extension.zip"
-FILES = ["metadata.json", "extension.js", "layout.js", "tiler.js", "LICENSE",
+FILES = ["metadata.json", "extension.js", "layout.js", "tiler.js", "panel.js", "panelGeometry.js", "stylesheet.css", "LICENSE",
          "schemas/org.gnome.shell.extensions.nextile.gschema.xml"]
 
 (ROOT / "dist").mkdir(exist_ok=True)

@@ -1,9 +1,10 @@
 {
   "uuid": "nextile@erikleblansch.github.io",
   "name": "NexTile",
-  "description": "Quiet, automatic tiling. New windows split the largest tile. Controls live in Quick Settings.",
+  "description": "Automatic largest-tile splitting, a transparent adaptive panel and centered numbered workspaces. Controls live in Quick Settings.",
   "shell-version": ["48"],
-  "version": 1,
+  "version": 2,
+  "version-name": "0.2.0",
   "url": "https://github.com/erikleblansch/NexTile",
   "settings-schema": "org.gnome.shell.extensions.nextile"
 }

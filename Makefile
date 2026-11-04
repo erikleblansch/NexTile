@@ -5,6 +5,7 @@ EXTENSION_DIR = $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 test:
 	glib-compile-schemas --strict --dry-run schemas
 	gjs -m tests/layout.js
+	gjs -m tests/panelGeometry.js
 
 pack: test
 	python3 tools/pack.py

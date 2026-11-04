@@ -1,5 +1,26 @@
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
+PASS: Panel is fully transparent
+PASS: Clock and calendar button moved to the left
+PASS: Native dots hidden while numbered ribbon is present
+PASS: White background automatically selects black panel text
+PASS: Black background automatically selects white panel text
+PASS: Compositor background updates trigger contrast without a settings change
+PASS: Light and dark wallpaper regions get independent readable text colors
+PASS: Stable desktop has no recurring contrast sampling or pending timers
+PASS: Each workspace circle adapts to its own background region
+PASS: Workspace count and numbering follow GNOME
+PASS: First active pill is at the physical screen center
+PASS: Clicking number switches workspace
+PASS: Workspace motion includes intermediate animation frames
+PASS: New active pill settles exactly at center
+PASS: Active workspace is a large pill and inactive workspace a numbered circle
+PASS: Last active pill remains centered with clipped overflow
+PASS: Clicking active workspace opens Activities overview
+PASS: Moved clock still opens calendar
+PASS: Panel option restores original layout independently of tiling
+PASS: Panel customization can be enabled again
+PASS: Ribbon follows removal of workspaces
 PASS: GTK window NexTile A mapped
 PASS: First window fills work area with outer gap
 PASS: GTK window NexTile B mapped
@@ -33,4 +54,5 @@ PASS: Toggle off disconnects signals and removes sources
 PASS: Toggle off restores original window size
 PASS: Toggle on retiles existing windows
 PASS: Extension disable destroys UI and all owned resources
+PASS: Disable restores native panel and releases panel resources
 PASS: Extension can be enabled again

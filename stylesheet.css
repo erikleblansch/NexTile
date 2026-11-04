@@ -1,0 +1,61 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+#panel.nextile-panel {
+    background-color: transparent;
+    background-gradient-direction: none;
+    box-shadow: none;
+    border: none;
+    height: 36px;
+}
+
+#panel.nextile-panel .nextile-ink-light,
+#panel.nextile-panel .nextile-ink-light .panel-button,
+#panel.nextile-panel .nextile-ink-light .clock {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+    icon-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+#panel.nextile-panel .nextile-ink-dark,
+#panel.nextile-panel .nextile-ink-dark .panel-button,
+#panel.nextile-panel .nextile-ink-dark .clock {
+    color: #000000;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.65);
+    icon-shadow: 0 1px 2px rgba(255, 255, 255, 0.65);
+}
+
+#panel.nextile-panel .nextile-panel-item.nextile-ink-light,
+#panel.nextile-panel .nextile-panel-item.nextile-ink-light .panel-button,
+#panel.nextile-panel .nextile-panel-item.nextile-ink-light .clock {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+    icon-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+#panel.nextile-panel .nextile-panel-item.nextile-ink-dark,
+#panel.nextile-panel .nextile-panel-item.nextile-ink-dark .panel-button,
+#panel.nextile-panel .nextile-panel-item.nextile-ink-dark .clock {
+    color: #000000;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.65);
+    icon-shadow: 0 1px 2px rgba(255, 255, 255, 0.65);
+}
+
+.nextile-workspace {
+    border-radius: 999px;
+    padding: 0;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    text-shadow: none;
+    transition-duration: 150ms;
+}
+
+.nextile-ink-dark .nextile-workspace {
+    color: #000000;
+    border-color: rgba(0, 0, 0, 0.35);
+}
+
+.nextile-ink-light .nextile-workspace:active { color: #000000; }
+.nextile-ink-dark .nextile-workspace:active { color: #ffffff; }
+.nextile-workspace:hover, .nextile-workspace:focus { border-width: 2px; }
