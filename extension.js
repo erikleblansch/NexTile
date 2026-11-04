@@ -8,6 +8,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as QuickSettings from 'resource:///org/gnome/shell/ui/quickSettings.js';
 import {Tiler} from './tiler.js';
 import {PanelAppearance} from './panel.js';
+import {CompactSearch} from './compactSearch.js';
 
 const NexTileToggle = GObject.registerClass(
 class NexTileToggle extends QuickSettings.QuickMenuToggle {
@@ -42,6 +43,9 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this._panelSwitch = new PopupMenu.PopupSwitchMenuItem('Transparante bovenbalk', true);
         this._panelSwitch.connect('toggled', (_item, state) => settings.set_boolean('panel-enabled', state));
         this.menu.addMenuItem(this._panelSwitch);
+        this._searchSwitch = new PopupMenu.PopupSwitchMenuItem('Super opent zoeken', true);
+        this._searchSwitch.connect('toggled', (_item, state) => settings.set_boolean('search-enabled', state));
+        this.menu.addMenuItem(this._searchSwitch);
         this._changedId = settings.connect('changed', () => this._sync());
         this._focusId = global.display.connect('notify::focus-window', () => this._rememberFocus());
         this._rememberFocus();
@@ -64,6 +68,7 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
             item.setOrnament(value === mode ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE);
         this._restore.setToggleState(this._settings.get_boolean('restore-on-disable'));
         this._panelSwitch.setToggleState(this._settings.get_boolean('panel-enabled'));
+        this._searchSwitch.setToggleState(this._settings.get_boolean('search-enabled'));
         this._float.setToggleState(this._tiler.isFloating(this._focus));
         this._float.setSensitive(enabled && !!this._focus &&
             this._focus.get_window_type() === Meta.WindowType.NORMAL);
@@ -113,17 +118,32 @@ export default class NexTileExtension extends Extension {
                 this._tiler.queue();
             else if (key === 'panel-enabled')
                 this._syncPanel();
+            else if (key === 'search-enabled')
+                this._syncSearch();
         });
         this._syncPanel();
+        this._syncSearch();
         this._sync();
     }
 
     _syncPanel() {
+        this._search?.close(false);
         if (this._settings.get_boolean('panel-enabled'))
             this._appearance ??= new PanelAppearance();
         else {
             this._appearance?.destroy();
             this._appearance = null;
+        }
+    }
+
+    _syncSearch() {
+        if (this._settings.get_boolean('search-enabled')) {
+            this._search ??= new CompactSearch(
+                () => this._appearance?.getActivePillRect(),
+                () => this._appearance?.queueContrast());
+        } else {
+            this._search?.destroy();
+            this._search = null;
         }
     }
 
@@ -136,6 +156,8 @@ export default class NexTileExtension extends Extension {
 
     disable() {
         this._settings?.disconnect(this._settingsId);
+        this._search?.destroy();
+        this._search = null;
         this._appearance?.destroy();
         this._appearance = null;
         this._tiler?.stop();

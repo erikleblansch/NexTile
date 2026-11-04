@@ -21,6 +21,29 @@ PASS: Moved clock still opens calendar
 PASS: Panel option restores original layout independently of tiling
 PASS: Panel customization can be enabled again
 PASS: Ribbon follows removal of workspaces
+PASS: Real Super key opens compact search without Activities
+PASS: Search immediately owns keyboard focus and one modal grab
+PASS: Empty search shows only the search bar
+PASS: Search surface expands from pill to final bar width
+PASS: Search expansion includes intermediate animation frames
+PASS: Typing after Super enters the query directly
+PASS: Native GNOME app search finds installed fixture applications
+PASS: Down selects next application
+PASS: Up selects previous application
+PASS: Real mouse wheel changes workspace while retaining search and focus
+PASS: Enter launches application and closes search without showing Activities
+PASS: Application launches on selected workspace and modal grab is released
+PASS: Escape closes search and releases focus
+PASS: Second Super closes compact search
+PASS: Clicking outside search closes it and releases the grab
+PASS: New query replaces old results and shows empty-result feedback
+PASS: Closing cancels queued searches and prevents results returning
+PASS: Delayed application provider has an in-flight search
+PASS: Enter during an in-flight search launches its result
+PASS: Search setting disables cleanly even while the bar is open
+PASS: Disabling during an in-flight search discards late results
+PASS: Disabling compact search restores native Super overview
+PASS: Compact search can be re-enabled
 PASS: GTK window NexTile A mapped
 PASS: First window fills work area with outer gap
 PASS: GTK window NexTile B mapped
@@ -55,4 +78,5 @@ PASS: Toggle off restores original window size
 PASS: Toggle on retiles existing windows
 PASS: Extension disable destroys UI and all owned resources
 PASS: Disable restores native panel and releases panel resources
+PASS: Disable removes search modal, signals and restores Super handler
 PASS: Extension can be enabled again

@@ -6,15 +6,26 @@ test_dir=$(mktemp -d /tmp/nextile-runtime.XXXXXX)
 echo "Runtime evidence: $test_dir"
 mkdir -p "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io" "$test_dir/config" "$test_dir/runtime"
 chmod 700 "$test_dir/runtime"
-cp "$repo_dir/"{extension.js,layout.js,tiler.js,panel.js,panelGeometry.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
+cp "$repo_dir/"{extension.js,layout.js,tiler.js,panel.js,panelGeometry.js,compactSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 cp -r "$repo_dir/schemas" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 glib-compile-schemas --strict "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/schemas"
 cp -r "$repo_dir/tests/driver" "$test_dir/data/gnome-shell/extensions/nextile-test@local"
 export XDG_DATA_HOME="$test_dir/data" XDG_CONFIG_HOME="$test_dir/config" XDG_RUNTIME_DIR="$test_dir/runtime"
 export NEXTILE_TEST_RESULT="$test_dir/result.txt" NEXTILE_TEST_FIXTURE="$repo_dir/tests/fixture.py"
+mkdir -p "$XDG_DATA_HOME/applications"
+for name in Alpha Beta; do
+    cat > "$XDG_DATA_HOME/applications/nextile-search-$name.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=NexTile Zoektest $name
+Exec=python3 "$NEXTILE_TEST_FIXTURE" "NexTile Search $name"
+Icon=utilities-terminal
+Terminal=false
+EOF
+done
 export GSETTINGS_BACKEND=keyfile
 export NEXTILE_TEST_BACKEND="${1:-wayland}"
-timeout 90s dbus-run-session -- bash -c '
+timeout 120s dbus-run-session -- bash -c '
     set -eu
     gsettings set org.gnome.shell enabled-extensions "['\''nextile@erikleblansch.github.io'\'', '\''nextile-test@local'\'']"
     gsettings set org.gnome.shell welcome-dialog-last-shown-version "48.0"
@@ -36,8 +47,16 @@ timeout 90s dbus-run-session -- bash -c '
     fi
     gnome-shell --force-animations $shell_args > "$XDG_RUNTIME_DIR/shell.log" 2>&1 &
     shell_pid=$!
-    trap "kill $shell_pid $xephyr_pid 2>/dev/null || true" EXIT
-    for attempt in $(seq 1 170); do
+    cleanup() {
+        kill "$shell_pid" 2>/dev/null || true
+        wait "$shell_pid" 2>/dev/null || true
+        if [ -n "$xephyr_pid" ]; then
+            kill "$xephyr_pid" 2>/dev/null || true
+            wait "$xephyr_pid" 2>/dev/null || true
+        fi
+    }
+    trap cleanup EXIT
+    for attempt in $(seq 1 230); do
         if [ -f "$NEXTILE_TEST_RESULT" ]; then cat "$NEXTILE_TEST_RESULT"; exit 0; fi
         kill -0 "$shell_pid" || exit 1
         sleep 0.5
@@ -46,5 +65,8 @@ timeout 90s dbus-run-session -- bash -c '
 ' || { tail -80 "$test_dir/runtime/shell.log"; exit 1; }
 if grep -q '^FAIL:' "$NEXTILE_TEST_RESULT"; then
     tail -80 "$test_dir/runtime/shell.log"
+    exit 1
+fi
+if grep -E 'JS ERROR|Gjs-CRITICAL|Theme parsing error|NexTile (search|contrast):' "$test_dir/runtime/shell.log"; then
     exit 1
 fi

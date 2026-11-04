@@ -4,6 +4,7 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 import Cogl from 'gi://Cogl';
+import Clutter from 'gi://Clutter';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -39,6 +40,7 @@ export default class TestDriver extends Extension {
         assert(ext?._tiler?._running, 'Extension loads and tiler starts');
         assert(ext._toggle.title === 'NexTile' && !!ext._toggle.menu, 'Native Quick Settings toggle with menu');
         await this._panelTests(ext, assert);
+        await this._searchTests(ext, assert);
         const spawn = async (name, large = false) => {
             Gio.Subprocess.new(['python3', GLib.getenv('NEXTILE_TEST_FIXTURE'), name,
                 ...(large ? ['large'] : [])], Gio.SubprocessFlags.NONE);
@@ -180,6 +182,7 @@ export default class TestDriver extends Extension {
         assert(ext._tiler._running && rect(a).width === a2.width, 'Toggle on retiles existing windows');
         const tiler = ext._tiler;
         const appearance = ext._appearance;
+        const search = ext._search;
         await Main.extensionManager.disableExtension('nextile@erikleblansch.github.io');
         await delay(600);
         assert(!tiler._running && tiler._signals.length === 0 && tiler._windows.size === 0 && !ext._toggle,
@@ -188,12 +191,151 @@ export default class TestDriver extends Extension {
             appearance._windowSignals.size === 0 && !Main.panel.has_style_class_name('nextile-panel') &&
             Main.panel.statusArea.dateMenu.container.get_parent() === Main.panel._centerBox &&
             Main.panel.statusArea.activities.container.visible, 'Disable restores native panel and releases panel resources');
+        assert(search._destroyed && !search._timeout && !search._grab && !search._nativeHandler &&
+            search._signals.length === 0, 'Disable removes search modal, signals and restores Super handler');
         await Main.extensionManager.enableExtension('nextile@erikleblansch.github.io');
         await delay(600);
         assert(ext._tiler._running, 'Extension can be enabled again');
         a.delete(global.get_current_time());
         b.delete(global.get_current_time());
         this._finish(log.join('\n'));
+    }
+
+    async _searchTests(ext, assert) {
+        const search = ext._search;
+        const mutter = new Gio.Settings({schema_id: 'org.gnome.mutter'});
+        const preferences = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
+        mutter.set_boolean('dynamic-workspaces', false);
+        preferences.set_int('num-workspaces', 4);
+        await delay(400);
+        const keyboard = Clutter.get_default_backend().get_default_seat()
+            .create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+        const press = async key => {
+            keyboard.notify_keyval(GLib.get_monotonic_time(), key, Clutter.KeyState.PRESSED);
+            await delay(40);
+            keyboard.notify_keyval(GLib.get_monotonic_time(), key, Clutter.KeyState.RELEASED);
+            await delay(120);
+        };
+        const modalCount = Main.modalCount;
+        let expanding = false;
+        const widthId = search._surface.connect('notify::width', () => {
+            if (search._target && search._surface.width > 60 && search._surface.width < search._target.width - 1)
+                expanding = true;
+        });
+        await press(Clutter.KEY_Super_L);
+        await delay(500);
+        search._surface.disconnect(widthId);
+        assert(search._open && !Main.overview.visible, 'Real Super key opens compact search without Activities');
+        assert(search._entry.clutter_text.has_key_focus() && Main.modalCount === modalCount + 1,
+            'Search immediately owns keyboard focus and one modal grab');
+        assert(!search._results.visible, 'Empty search shows only the search bar');
+        assert(Math.abs(search._surface.width - search._target.width) < 1,
+            'Search surface expands from pill to final bar width');
+        assert(expanding, 'Search expansion includes intermediate animation frames');
+        const monitor = Main.layoutManager.primaryMonitor;
+        const stream = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.search.png`)
+            .replace(null, false, Gio.FileCreateFlags.NONE, null);
+        const screenshot = new Shell.Screenshot();
+        await new Promise((resolve, reject) => screenshot.screenshot_area(monitor.x, monitor.y,
+            monitor.width, Math.ceil(search._backdrop.height + 32), stream, (source, result) => {
+                try { source.screenshot_area_finish(result); resolve(); } catch (error) { reject(error); }
+            }));
+        stream.close(null);
+        for (const letter of 'zoektest')
+            await press(letter.charCodeAt(0));
+        await delay(500);
+        assert(search._entry.get_text() === 'zoektest', 'Typing after Super enters the query directly');
+        assert(search._rows.length === 2 && search._rows.every(row => row.id.startsWith('nextile-search-')),
+            'Native GNOME app search finds installed fixture applications');
+        await press(Clutter.KEY_Down);
+        assert(search._selected === 1, 'Down selects next application');
+        await press(Clutter.KEY_Up);
+        assert(search._selected === 0, 'Up selects previous application');
+        const pointer = Clutter.get_default_backend().get_default_seat()
+            .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
+        pointer.notify_absolute_motion(GLib.get_monotonic_time(), monitor.x + monitor.width / 2,
+            monitor.y + Main.panel.height + 28);
+        pointer.notify_discrete_scroll(GLib.get_monotonic_time(), Clutter.ScrollDirection.DOWN,
+            Clutter.ScrollSource.WHEEL);
+        await delay(700);
+        assert(global.workspace_manager.get_active_workspace_index() === 1 && search._open &&
+            search._entry.get_text() === 'zoektest' && search._entry.clutter_text.has_key_focus(),
+        'Real mouse wheel changes workspace while retaining search and focus');
+        await press(Clutter.KEY_Return);
+        await delay(1000);
+        const launched = global.get_window_actors().map(actor => actor.meta_window)
+            .find(window => window.title?.startsWith('NexTile Search '));
+        assert(!!launched && !search._open && !Main.overview.visible,
+            'Enter launches application and closes search without showing Activities');
+        assert(launched.get_workspace().index() === 1 && Main.modalCount === modalCount,
+            'Application launches on selected workspace and modal grab is released');
+        launched.delete(global.get_current_time());
+        await delay(300);
+        await press(Clutter.KEY_Super_L);
+        await press(Clutter.KEY_Escape);
+        await delay(300);
+        assert(!search._open && Main.modalCount === modalCount, 'Escape closes search and releases focus');
+        await press(Clutter.KEY_Super_L);
+        await press(Clutter.KEY_Super_L);
+        await delay(300);
+        assert(!search._open && !Main.overview.visible, 'Second Super closes compact search');
+        search.open();
+        pointer.notify_absolute_motion(GLib.get_monotonic_time(), monitor.x + 20, monitor.y + 300);
+        pointer.notify_button(GLib.get_monotonic_time(), 1, Clutter.ButtonState.PRESSED);
+        pointer.notify_button(GLib.get_monotonic_time(), 1, Clutter.ButtonState.RELEASED);
+        await delay(350);
+        assert(!search._open && Main.modalCount === modalCount, 'Clicking outside search closes it and releases the grab');
+        search.open();
+        search._entry.set_text('zoektest');
+        search._entry.set_text('nextile-query-with-no-results');
+        await delay(400);
+        assert(search._rows.length === 0 && search._results.visible,
+            'New query replaces old results and shows empty-result feedback');
+        search._entry.set_text('zoektest');
+        search.close(false);
+        await delay(300);
+        assert(!search._timeout && search._rows.length === 0 && !search._results.visible,
+            'Closing cancels queued searches and prevents results returning');
+        const provider = search._provider;
+        const getResults = provider.getInitialResultSet;
+        provider.getInitialResultSet = async function (...args) {
+            await delay(350);
+            return getResults.apply(this, args);
+        };
+        search.open();
+        search._entry.set_text('zoektest');
+        await delay(150);
+        assert(!!search._cancellable, 'Delayed application provider has an in-flight search');
+        await press(Clutter.KEY_Return);
+        await delay(1000);
+        const fastLaunch = global.get_window_actors().map(actor => actor.meta_window)
+            .find(window => window.title?.startsWith('NexTile Search '));
+        assert(!!fastLaunch && !search._open, 'Enter during an in-flight search launches its result');
+        fastLaunch.delete(global.get_current_time());
+        await delay(300);
+        search.open();
+        search._entry.set_text('zoektest');
+        await delay(150);
+        ext._settings.set_boolean('search-enabled', false);
+        await delay(600);
+        assert(!ext._search && !search._grab && !search._nativeHandler && Main.modalCount === modalCount,
+            'Search setting disables cleanly even while the bar is open');
+        assert(search._rows.length === 0 && !search._cancellable,
+            'Disabling during an in-flight search discards late results');
+        await press(Clutter.KEY_Super_L);
+        await delay(700);
+        assert(Main.overview.visible, 'Disabling compact search restores native Super overview');
+        Main.overview.hide();
+        await delay(500);
+        ext._settings.set_boolean('search-enabled', true);
+        await press(Clutter.KEY_Super_L);
+        await delay(400);
+        assert(ext._search._open && !Main.overview.visible, 'Compact search can be re-enabled');
+        ext._search.close(false);
+        global.workspace_manager.get_workspace_by_index(0).activate(global.get_current_time());
+        preferences.set_int('num-workspaces', 2);
+        mutter.set_boolean('dynamic-workspaces', true);
+        await delay(600);
     }
 
     async _panelTests(ext, assert) {

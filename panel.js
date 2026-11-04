@@ -203,6 +203,15 @@ export class PanelAppearance {
         this._signals.push([object, object.connect(signal, callback)]);
     }
 
+    getActivePillRect() {
+        const button = this._ribbon._buttons[global.workspace_manager.get_active_workspace_index()];
+        if (!button?.mapped)
+            return null;
+        const [x, y] = button.get_transformed_position();
+        const [width, height] = button.get_transformed_size();
+        return {x, y, width, height};
+    }
+
     _moveClock() {
         const container = this._date.container;
         if (container.get_parent() !== this._panel._leftBox) {
