@@ -10,11 +10,11 @@ Vanaf **0.2.0** heeft NexTile ook een transparante bovenbalk: de klok staat link
 
 ![Transparante bovenbalk met de klok links en genummerde werkruimtes in het midden, op een lichte en donkere testachtergrond](docs/topbar.png)
 
-Vanaf **0.4.0** verandert de actieve werkruimtepil bij **Super** op zijn eigen plek in een zoekbalk. De andere werkruimteknoppen schuiven opzij. Daaronder verschijnen GNOME's gewone programma-iconen en categorieën met zoekresultaten, boven het zichtbare bureaublad en zonder grijze achtergrondvlakken.
+Vanaf **0.4.0** verandert de actieve werkruimtepil bij **Super** op zijn eigen plek in een zoekbalk. De andere werkruimteknoppen schuiven opzij. Daaronder verschijnen GNOME's gewone programma-iconen en categorieën met zoekresultaten, boven het zichtbare bureaublad zonder algemene grijze achtergrond. Vanaf **0.5.0** hebben de resultaatcategorieën weer een halfdoorzichtig paneel.
 
 ![Zoekbalk op de plek van de actieve pil](docs/search.png)
 
-![Native programma-iconen en providerresultaten op een transparante achtergrond](docs/search-results.png)
+![Native programma-iconen en halfdoorzichtige resultaatpanelen](docs/search-results.png)
 
 ```text
        1 venster             2 vensters            3 vensters
@@ -55,7 +55,9 @@ Open het systeemmenu rechtsboven. Klik op **NexTile** om automatisch tegelen aan
 | Transparante bovenbalk | Schakelt de aangepaste balk, kleurkeuze en werkruimte-indicator samen aan/uit, onafhankelijk van automatisch tegelen. |
 | Super opent zoeken | Opent de zoekbalk in de bovenbalk met Super; standaard aan. Uitzetten herstelt het gewone Activiteitenoverzicht met Super. |
 
-Sleep een tegel naar het midden van een andere tegel om ze te verwisselen. Handmatig vergroten/verkleinen van een tegel springt na loslaten terug naar de tegelmaat. Laat een venster zweven voor vrije plaatsing.
+Sleep de titelbalk van een venster naar een andere tegel. De overgebleven vensters vullen de vrijgekomen ruimte; de doeltegel wordt langs zijn langste zijde gehalveerd om het versleepte venster op te nemen. De helft waarop je loslaat bepaalt de plaatsing. Dit gebruikt altijd de langste zijde, onafhankelijk van de ingestelde splitsrichting voor nieuwe vensters.
+
+Sleep de **grens tussen tegels** om beide kanten samen te vergroten of verkleinen. De grens licht op onder de muis en blijft ook met vensterafstand nul grijpbaar. **Escape** herstelt de verhouding van vóór het slepen. Vergroten via een gewone gedeelde vensterrand past dezelfde splitsing aan. Verhoudingen blijven behouden tot opnieuw indelen of het uitschakelen van tegelen. Als een app de gevraagde maat weigert, wordt de vorige verhouding hersteld. Laat een venster zweven voor vrije plaatsing.
 
 Elke combinatie van scherm en werkruimte heeft een eigen indeling. Staat GNOME ingesteld op werkruimtes alleen op het hoofdscherm, dan behouden de andere schermen één gedeelde indeling. Minimaliseren en fullscreen maken tijdelijk ruimte vrij; terugkeren voegt het venster opnieuw toe. Handmatig maximaliseren wordt gerespecteerd. Bij de eerste inschakeling worden bestaande normale vensters, ook gemaximaliseerde, meegenomen.
 
@@ -77,7 +79,7 @@ Deze kleurmeting schrijft geen screenshots naar schijf en verstuurt niets. Ze re
 
 Druk op **Super** en begin te typen. De actieve pil wordt tijdelijk de zoekbalk; de andere rondjes houden hun formaat en maken vloeiend ruimte. Bij sluiten krimpt de balk terug en sluit de werkruimterij weer aan.
 
-De resultaten gebruiken GNOME's eigen raster voor programma's en lijsten per zoekprovider, met pictogrammen, beschrijvingen en de knop voor meer resultaten. Ze volgen de providers en volgorde uit **GNOME Instellingen → Zoeken**, inclusief door extensies geregistreerde providers. Er verschijnen dus ook bestanden, instellingen en andere categorieën die je gewoonlijk in het Activiteitenoverzicht ziet. De algemene achtergrond en categoriepanelen zijn transparant; het bureaublad blijft zichtbaar.
+De resultaten gebruiken GNOME's eigen raster voor programma's en lijsten per zoekprovider, met pictogrammen, beschrijvingen en de knop voor meer resultaten. Ze volgen de providers en volgorde uit **GNOME Instellingen → Zoeken**, inclusief door extensies geregistreerde providers. Er verschijnen dus ook bestanden, instellingen en andere categorieën die je gewoonlijk in het Activiteitenoverzicht ziet. De algemene achtergrond is volledig transparant. Categoriepanelen hebben een donkere achtergrond met **50% dekking**, zodat de resultaten herkenbaar blijven en het bureaublad erdoorheen zichtbaar blijft.
 
 - **Enter** opent het geselecteerde resultaat; **↑/↓** of **Tab/Shift+Tab** kiezen een ander resultaat. Klikken op een resultaat werkt ook. Klik op de providernaam om verder te zoeken in die app.
 - **Muiswiel** wisselt van werkruimte zolang de zoekmodus open is, met behoud van zoektekst en toetsenbordfocus. Een nieuw programmavenster opent op de gekozen werkruimte; een al geopend programma volgt GNOME's normale activeergedrag.
@@ -85,6 +87,24 @@ De resultaten gebruiken GNOME's eigen raster voor programma's en lijsten per zoe
 - Het volledige Activiteitenoverzicht blijft bereikbaar door op het actieve werkruimtenummer te klikken. Met de aangepaste bovenbalk uit blijft de gewone Activiteitenknop beschikbaar.
 
 De zoekmodus werkt onafhankelijk van tegelen en de bovenbalk. Zonder aangepaste werkruimterij groeit de zoekbalk midden bovenaan. Uitschakelen herstelt GNOME's oorspronkelijke Super-afhandeling, zonder blijvende wijzigingen aan sneltoetsen.
+
+## Halfdoorzichtige terminal
+
+Voor **GNOME Terminal** bevat de repository een optionele GTK 3-stijl. Deze maakt alleen de terminalachtergrond 50% doorzichtig; letters blijven volledig zichtbaar en de titelbalk behoudt zijn gewone uiterlijk. Installeer vanuit deze repository:
+
+```sh
+python3 tools/configure-terminal.py
+```
+
+De helper voegt een afgebakend blok toe aan `~/.config/gtk-3.0/gtk.css` (of de map uit `XDG_CONFIG_HOME`) en maakt vooraf een reservekopie. Andere GTK-stijlen blijven behouden. Gebruik in de Terminal-profielvoorkeuren **Kleuren van systeemthema gebruiken**. Sluit alle terminalvensters en open Terminal opnieuw, of meld opnieuw aan, om de stijl te laden. Deze instelling staat los van de extensieschakelaar.
+
+![GNOME Terminal met halfdoorzichtige achtergrond en ondoorzichtige tekst](docs/terminal.png)
+
+Alleen deze aanpassing verwijderen:
+
+```sh
+python3 tools/configure-terminal.py --remove
+```
 
 ## Compatibiliteit en controle
 
@@ -97,18 +117,18 @@ bash tests/runtime.sh     # Geïsoleerde GNOME/Wayland-test met echte GTK-venste
 bash tests/runtime.sh x11 # Geïsoleerde GNOME/X11-test in Xephyr
 ```
 
-De runtime-tests vereisen GNOME Shell 48, Python GObject/GTK 3, D-Bus en voor X11 Xephyr plus een beschikbaar X-display. Zij gebruiken een eigen sessiebus, instellingenmap en extensiemap. De actieve desktop wordt niet vervangen. Testlogs blijven in een tijdelijke map onder `/tmp/nextile-runtime.*` staan. De testdriver wordt **niet** meegeleverd in de extensie.
+De runtime-tests vereisen GNOME Shell 48, Python GObject/GTK 3, GNOME Terminal, D-Bus en voor X11 Xephyr plus een beschikbaar X-display. Zij gebruiken een eigen sessiebus, instellingenmap en extensiemap. De actieve desktop wordt niet vervangen. Testlogs blijven in een tijdelijke map onder `/tmp/nextile-runtime.*` staan. De testdriver wordt **niet** meegeleverd in de extensie.
 
 Zie [de testresultaten](docs/VALIDATION.md) voor de daadwerkelijk gecontroleerde versie en beperkingen. GitHub Actions controleert geometrie, schema en packaging; de compositor-tests worden lokaal uitgevoerd.
 
 ## Ontwerp
 
-- Een binaire boom bewaart de splitsingen. Toevoegen verandert alleen de grootste tegel; verwijderen trekt de overgebleven tak op.
+- Een binaire boom bewaart de splitsingen en hun verhoudingen. Toevoegen verandert alleen de grootste tegel; verwijderen trekt de overgebleven tak op.
 - GNOME-signalen activeren de indeling. Meldingen worden gedurende 40 ms samengevoegd; er is geen periodieke polling.
 - Een enkele controle na 250 ms vangt minimumafmetingen van apps op.
 - De bovenbalk bundelt kleurmetingen gedurende 450 ms; op een stabiele desktop draait hiervoor geen timer.
 - Zoeken bundelt toetsaanslagen gedurende 150 ms. Een gesloten zoekmodus heeft geen zoektimer; verouderde asynchrone resultaten worden genegeerd.
-- Alleen gewijzigde geometrie wordt aan Mutter doorgegeven. Tijdens slepen wacht de indeling op het loslaten.
+- Alleen gewijzigde geometrie wordt aan Mutter doorgegeven. Bij verplaatsen wacht de indeling op het loslaten; bij vergroten/verkleinen volgen aangrenzende tegels tijdens het slepen.
 - Uitschakelen verwijdert alle eigen signalen, timers en menuonderdelen. Herstel respecteert de huidige werkruimte en houdt vensters binnen het huidige scherm.
 - Geen eigen achtergrondservice, telemetrie of shellcommando's. Zoekopdrachten gaan naar de ingeschakelde GNOME-zoekproviders; die kunnen hun eigen apps of diensten activeren, net als in het Activiteitenoverzicht.
 

@@ -8,7 +8,7 @@ from gi.repository import Gtk
 window = Gtk.Window(title=sys.argv[1])
 window.set_default_size(360, 240)
 if len(sys.argv) > 2:
-    window.set_size_request(1000, 700)
+    window.set_size_request(*((500, 100) if sys.argv[2] == 'minimum' else (1000, 700)))
 window.add(Gtk.Label(label=sys.argv[1]))
 window.connect("destroy", Gtk.main_quit)
 window.show_all()

@@ -4,6 +4,7 @@ import Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {Layout, inset} from './layout.js';
+import {TileBorders} from './tileBorders.js';
 
 export class Tiler {
     constructor(settings) {
@@ -26,6 +27,7 @@ export class Tiler {
         if (this._running)
             return;
         this._running = true;
+        this._borders = new TileBorders(this);
         const connect = (object, signal, callback) =>
             this._signals.push([object, object.connect(signal, callback)]);
         connect(global.display, 'window-created', (_display, window) => this._watch(window));
@@ -44,11 +46,22 @@ export class Tiler {
             this._groups.clear();
             this.queue();
         });
-        connect(global.display, 'grab-op-begin', () => { this._grabbing = true; });
+        connect(Main.overview, 'showing', () => this._updateBorders());
+        connect(Main.overview, 'hidden', () => this._updateBorders());
+        connect(Main.sessionMode, 'updated', () => this._updateBorders());
+        connect(global.display, 'restacked', () => this._updateBorders());
+        connect(global.display, 'grab-op-begin', (_display, window, op) => {
+            this._grabbing = true;
+            this._moveGroup = this._findGroup(window);
+            this._beginResize(window, op);
+        });
         connect(global.display, 'grab-op-end', (_display, window, op) => {
             this._grabbing = false;
+            this._updateResize();
             if (op === Meta.GrabOp.MOVING || op === Meta.GrabOp.KEYBOARD_MOVING)
-                this._swapAtDrop(window);
+                this._dropAt(window, ...global.get_pointer().slice(0, 2));
+            this._resizeGrab = null;
+            this._moveGroup = null;
             this.queue();
         });
         for (const actor of global.get_window_actors())
@@ -73,7 +86,16 @@ export class Tiler {
                 this.queue();
             }));
         }
+        for (const signal of ['size-changed', 'position-changed'])
+            ids.push(window.connect(signal, () => {
+                if (this._resizeGrab?.window === window && !this._applying)
+                    this._updateResize();
+                else if (!this._applying && !this._grabbing)
+                    this._updateBorders();
+            }));
         ids.push(window.connect('unmanaged', () => {
+            if (this._resizeGrab?.window === window)
+                this._resizeGrab = null;
             for (const id of ids)
                 window.disconnect(id);
             this._windows.delete(window);
@@ -92,7 +114,7 @@ export class Tiler {
         // Coalesce bursts of map/workspace/monitor notifications; never poll.
         this._source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 40, () => {
             this._source = 0;
-            if (!this._grabbing) {
+            if (!this._grabbing || this._resizeGrab) {
                 try {
                     this._reconcile();
                 } catch (error) {
@@ -191,7 +213,8 @@ export class Tiler {
                         if (window.get_maximized())
                             window.unmaximize(Meta.MaximizeFlags.BOTH);
                         const current = window.get_frame_rect();
-                        if (['x', 'y', 'width', 'height'].some(key => current[key] !== rect[key]))
+                        if (window !== this._resizeGrab?.window &&
+                            ['x', 'y', 'width', 'height'].some(key => current[key] !== rect[key]))
                             window.move_resize_frame(false, rect.x, rect.y,
                                 Math.max(1, rect.width), Math.max(1, rect.height));
                     }
@@ -202,13 +225,14 @@ export class Tiler {
         } finally {
             this._applying = false;
         }
+        this._updateBorders();
         // Apps enforce their own minimum size asynchronously. One settling pass
         // releases incompatible windows instead of repeatedly fighting the client.
         if (this._settleSource)
             GLib.Source.remove(this._settleSource);
         this._settleSource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
             this._settleSource = 0;
-            if (this._grabbing)
+            if (this._grabbing || this._dividerDragging)
                 return GLib.SOURCE_REMOVE;
             let changed = false;
             for (const [window, target] of targets) {
@@ -216,34 +240,152 @@ export class Tiler {
                     continue;
                 const actual = window.get_frame_rect();
                 if (actual.width > target.width + 2 || actual.height > target.height + 2) {
+                    if (this._resizeBackup) {
+                        const backup = this._resizeBackup;
+                        this._resizeBackup = null;
+                        // GNOME 48 does not expose client minimum sizes. Keep
+                        // tiled windows tiled if an app refuses a manual resize.
+                        for (const [node, ratio] of backup)
+                            node.ratio = ratio;
+                        this.queue();
+                        return GLib.SOURCE_REMOVE;
+                    }
                     this._floating.add(window);
                     this._restore(window);
                     changed = true;
                 }
             }
+            this._resizeBackup = null;
             if (changed)
                 this.queue();
             return GLib.SOURCE_REMOVE;
         });
     }
 
-    _swapAtDrop(window) {
-        const group = this._group(window);
-        if (!group)
-            return;
-        const rects = group.layout.rectangles(this._area(group), this.settings.get_int('gap'));
-        if (!rects.has(window))
-            return;
-        const frame = window.get_frame_rect();
-        const x = frame.x + frame.width / 2;
-        const y = frame.y + frame.height / 2;
-        for (const [other, rect] of rects) {
-            if (other !== window && x >= rect.x && x < rect.x + rect.width &&
-                y >= rect.y && y < rect.y + rect.height) {
-                group.layout.swap(window, other);
-                break;
+    _findGroup(window) {
+        for (const monitors of this._groups.values()) {
+            for (const group of monitors.values()) {
+                if (group.layout.rectangles(this._area(group), this.settings.get_int('gap')).has(window))
+                    return group;
             }
         }
+        return null;
+    }
+
+    _dropAt(window, x, y) {
+        const source = this._moveGroup ?? this._findGroup(window);
+        const group = this._group(window);
+        if (!source || !group || !this._eligible(window))
+            return false;
+        const gap = this.settings.get_int('gap');
+        const area = this._area(group);
+        const rects = group.layout.rectangles(area, gap);
+        for (const [other, rect] of rects) {
+            if (other === window || x < rect.x || x >= rect.x + rect.width || y < rect.y || y >= rect.y + rect.height)
+                continue;
+            const before = rect.width >= rect.height ? x < rect.x + rect.width / 2 : y < rect.y + rect.height / 2;
+            if (source === group)
+                return group.layout.moveTo(window, other, area, gap, before);
+            const sourceRoot = source.layout.root;
+            const targetRoot = group.layout.root;
+            source.layout.remove(window);
+            group.layout.insertAt(window, other, area, gap, before);
+            if ([...group.layout.rectangles(area, gap).values()].some(r => r.width < 120 || r.height < 80)) {
+                source.layout.root = sourceRoot;
+                group.layout.root = targetRoot;
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    _resizeDivider(item, x, y) {
+        if (item.group.layout.resize(item.node, item.axis === 'horizontal' ? x : y,
+            this._area(item.group), this.settings.get_int('gap')))
+            this.queue();
+    }
+
+    _saveResize(items) {
+        this._resizeBackup = items.map(item => [item.node, item.node.ratio ?? 0.5]);
+    }
+
+    _borderOccluded(group, rect) {
+        const members = group.layout.rectangles(this._area(group), this.settings.get_int('gap'));
+        for (const window of this._windows.keys()) {
+            if (members.has(window) || window.minimized || !window.showing_on_its_workspace() ||
+                !window.get_compositor_private()?.visible || window.get_window_type() === Meta.WindowType.DESKTOP)
+                continue;
+            const frame = window.get_frame_rect();
+            if (frame.x < rect.x + rect.width && frame.x + frame.width > rect.x &&
+                frame.y < rect.y + rect.height && frame.y + frame.height > rect.y)
+                return true;
+        }
+        return false;
+    }
+
+    _updateBorders() {
+        if (!this._running || !this._borders)
+            return;
+        const workspace = global.workspace_manager.get_active_workspace();
+        const gap = this.settings.get_int('gap');
+        const items = [];
+        for (const monitors of this._groups.values()) {
+            for (const group of monitors.values()) {
+                if (group.monitor >= Main.layoutManager.monitors.length || (!group.shared && group.workspace !== workspace))
+                    continue;
+                items.push(...group.layout.dividers(this._area(group), gap).map(item => ({...item, group})));
+            }
+        }
+        this._borders.update(items);
+    }
+
+    _beginResize(window, op) {
+        this._resizeGrab = null;
+        const name = Object.keys(Meta.GrabOp).find(key => Meta.GrabOp[key] === op);
+        if (!name?.includes('RESIZING'))
+            return;
+        const group = this._findGroup(window);
+        if (!group)
+            return;
+        const rect = window.get_frame_rect();
+        const gap = this.settings.get_int('gap');
+        const edges = [];
+        const direction = name.split('_').at(-1);
+        if (!/^(N|S|E|W|NE|NW|SE|SW)$/.test(direction))
+            return;
+        for (const item of group.layout.dividers(this._area(group), gap)) {
+            const horizontal = item.axis === 'horizontal';
+            const overlaps = horizontal
+                ? rect.y < item.rect.y + item.rect.height && rect.y + rect.height > item.rect.y
+                : rect.x < item.rect.x + item.rect.width && rect.x + rect.width > item.rect.x;
+            if (!overlaps)
+                continue;
+            for (const [letter, edge, position] of horizontal
+                ? [['W', 'x', rect.x - gap / 2], ['E', 'right', rect.x + rect.width + gap / 2]]
+                : [['N', 'y', rect.y - gap / 2], ['S', 'bottom', rect.y + rect.height + gap / 2]]) {
+                if (direction.includes(letter) && Math.abs(item.position - position) <= 3)
+                    edges.push({item: {...item, group}, edge});
+            }
+        }
+        if (edges.length) {
+            this._resizeGrab = {window, edges};
+            this._saveResize(edges.map(edge => edge.item));
+        }
+    }
+
+    _updateResize() {
+        if (!this._resizeGrab)
+            return;
+        const {window, edges} = this._resizeGrab;
+        const rect = window.get_frame_rect();
+        const gap = this.settings.get_int('gap');
+        for (const {item, edge} of edges) {
+            const position = edge === 'right' ? rect.x + rect.width + gap / 2
+                : edge === 'bottom' ? rect.y + rect.height + gap / 2 : rect[edge] - gap / 2;
+            item.group.layout.resize(item.node, position, this._area(item.group), gap);
+        }
+        this.queue();
     }
 
     isFloating(window) {
@@ -285,6 +427,11 @@ export class Tiler {
 
     stop() {
         this._running = false;
+        this._borders?.destroy();
+        this._borders = null;
+        this._resizeGrab = null;
+        this._resizeBackup = null;
+        this._moveGroup = null;
         if (this._source)
             GLib.Source.remove(this._source);
         this._source = 0;

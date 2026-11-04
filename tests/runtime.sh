@@ -6,7 +6,7 @@ test_dir=$(mktemp -d /tmp/nextile-runtime.XXXXXX)
 echo "Runtime evidence: $test_dir"
 mkdir -p "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io" "$test_dir/config" "$test_dir/runtime"
 chmod 700 "$test_dir/runtime"
-cp "$repo_dir/"{extension.js,layout.js,tiler.js,panel.js,panelGeometry.js,compactSearch.js,nativeSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
+cp "$repo_dir/"{extension.js,layout.js,tiler.js,tileBorders.js,panel.js,panelGeometry.js,compactSearch.js,nativeSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 cp -r "$repo_dir/schemas" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
 glib-compile-schemas --strict "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/schemas"
 cp -r "$repo_dir/tests/driver" "$test_dir/data/gnome-shell/extensions/nextile-test@local"
@@ -24,6 +24,9 @@ Terminal=false
 EOF
 done
 export GSETTINGS_BACKEND=keyfile
+mkdir -p "$XDG_CONFIG_HOME/gtk-3.0"
+cp "$repo_dir/extras/terminal-transparency.css" "$XDG_CONFIG_HOME/gtk-3.0/gtk.css"
+export NEXTILE_TERMINAL_FIXTURE="$repo_dir/tests/terminal-fixture.py"
 export NEXTILE_TEST_BACKEND="${1:-wayland}"
 timeout 120s dbus-run-session -- bash -c '
     set -eu
@@ -45,6 +48,10 @@ timeout 120s dbus-run-session -- bash -c '
     else
         export WAYLAND_DISPLAY=nextile-test GDK_BACKEND=wayland
         shell_args="--headless --wayland --no-x11 --virtual-monitor 1280x800 --virtual-monitor 1024x768 --wayland-display nextile-test"
+    fi
+    dbus-update-activation-environment DISPLAY XDG_DATA_HOME XDG_CONFIG_HOME XDG_RUNTIME_DIR GSETTINGS_BACKEND GDK_BACKEND
+    if [ "$NEXTILE_TEST_BACKEND" != x11 ]; then
+        dbus-update-activation-environment WAYLAND_DISPLAY
     fi
     gnome-shell --force-animations $shell_args > "$XDG_RUNTIME_DIR/shell.log" 2>&1 &
     shell_pid=$!

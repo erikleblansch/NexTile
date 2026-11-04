@@ -32,7 +32,7 @@ PASS: Search overlay has no desktop backdrop
 PASS: Typing after Super enters the query directly
 PASS: Native GNOME app search finds installed fixture applications
 PASS: Native provider layout shows five results and the remaining count
-PASS: Provider category cards have transparent backgrounds
+PASS: Provider category cards retain a half-transparent background
 PASS: Overview provider widgets remain untouched
 PASS: Down selects next application
 PASS: Up selects previous application
@@ -54,6 +54,9 @@ PASS: Search setting disables cleanly even while the bar is open
 PASS: Disabling during an in-flight search discards late results
 PASS: Disabling compact search restores native Super overview
 PASS: Compact search can be re-enabled
+PASS: Real GNOME Terminal opens with the isolated transparency configuration
+PASS: Terminal background blends at 50 percent with the desktop (21,63,67)
+PASS: Terminal text is not faded by whole-window opacity
 PASS: GTK window NexTile A mapped
 PASS: First window fills work area with outer gap
 PASS: GTK window NexTile B mapped
@@ -78,7 +81,24 @@ PASS: Second workspace is available
 PASS: Moving to another workspace releases source tile
 PASS: Destination workspace has independent layout
 PASS: Returning to workspace tiles again
-PASS: Drop geometry swaps tile positions
+PASS: GTK window NexTile Insert mapped
+PASS: Dragging the title bar starts a real Mutter window move
+PASS: Source siblings fill the space released by the dragged window
+PASS: Target is split along its longest direction instead of swapping positions
+PASS: Shared tile boundary has a draggable handle
+PASS: Real mouse press grabs the shared boundary
+PASS: Dragging the boundary resizes both adjacent windows live
+PASS: Boundary release persists the ratio and releases the input grab
+PASS: Escape restores the previous split ratio
+PASS: Undirected keyboard resize does not accidentally select north/west borders
+PASS: Native window-edge resizing updates and retains the tile split
+PASS: Zero-gap layouts retain a usable boundary hit target
+PASS: Horizontal boundary drags resize the upper and lower tile
+PASS: Boundary owns a grab before disabling tiling
+PASS: Disabling during a boundary drag removes handles and releases the grab
+PASS: Constrained app fits before dragging the boundary
+PASS: Minimum-size test grabs the intended boundary
+PASS: Client minimum size restores the previous ratio without floating the app
 PASS: Quick Settings dropdown opens with gap choices
 PASS: Dropdown retains the active app window while Shell has focus
 PASS: Floating action works from the open dropdown

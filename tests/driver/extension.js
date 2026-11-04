@@ -5,6 +5,7 @@ import Shell from 'gi://Shell';
 import St from 'gi://St';
 import Cogl from 'gi://Cogl';
 import Clutter from 'gi://Clutter';
+import GdkPixbuf from 'gi://GdkPixbuf';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -39,8 +40,20 @@ export default class TestDriver extends Extension {
         };
         assert(ext?._tiler?._running, 'Extension loads and tiler starts');
         assert(ext._toggle.title === 'NexTile' && !!ext._toggle.menu, 'Native Quick Settings toggle with menu');
-        await this._panelTests(ext, assert);
-        await this._searchTests(ext, assert);
+        if (GLib.getenv('NEXTILE_TEST_ONLY') === 'terminal') {
+            const background = new Gio.Settings({schema_id: 'org.gnome.desktop.background'});
+            background.set_string('picture-options', 'none');
+            background.set_string('primary-color', '#0b5e63');
+            await delay(800);
+            await this._terminalTests(assert);
+            this._finish(log.join('\n'));
+            return;
+        }
+        if (GLib.getenv('NEXTILE_TEST_ONLY') !== 'tiling') {
+            await this._panelTests(ext, assert);
+            await this._searchTests(ext, assert);
+            await this._terminalTests(assert);
+        }
         const spawn = async (name, large = false) => {
             Gio.Subprocess.new(['python3', GLib.getenv('NEXTILE_TEST_FIXTURE'), name,
                 ...(large ? ['large'] : [])], Gio.SubprocessFlags.NONE);
@@ -131,13 +144,38 @@ export default class TestDriver extends Extension {
             await delay(600);
             assert(rect(a).width === a2.width, 'Returning to monitor tiles again');
         }
-        const swapBefore = rect(a);
-        const swapTarget = rect(b);
-        a.move_frame(false, swapTarget.x, swapTarget.y);
-        ext._tiler._swapAtDrop(a);
-        ext._tiler.queue();
+        const inserted = await spawn('NexTile Insert');
+        const targetBefore = rect(b);
+        const freedBefore = rect(inserted);
+        const dragPointer = Clutter.get_default_backend().get_default_seat()
+            .create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
+        a.activate(global.get_current_time());
+        await delay(200);
+        const origin = rect(a);
+        dragPointer.notify_absolute_motion(GLib.get_monotonic_time(), origin.x + origin.width / 2, origin.y + 22);
+        await delay(150);
+        dragPointer.notify_button(GLib.get_monotonic_time(), 1, Clutter.ButtonState.PRESSED);
+        await delay(150);
+        dragPointer.notify_absolute_motion(GLib.get_monotonic_time(), origin.x + origin.width / 2 + 30, origin.y + 42);
+        await delay(150);
+        assert(ext._tiler._grabbing, 'Dragging the title bar starts a real Mutter window move');
+        dragPointer.notify_absolute_motion(GLib.get_monotonic_time(), targetBefore.x + targetBefore.width * 0.75,
+            targetBefore.y + targetBefore.height * 0.75);
+        await delay(200);
+        dragPointer.notify_button(GLib.get_monotonic_time(), 1, Clutter.ButtonState.RELEASED);
         await delay(600);
-        assert(JSON.stringify(rect(b)) === JSON.stringify(swapBefore), 'Drop geometry swaps tile positions');
+        assert(rect(inserted).width * rect(inserted).height > freedBefore.width * freedBefore.height,
+            'Source siblings fill the space released by the dragged window');
+        assert(rect(a).x >= targetBefore.x && rect(b).x >= targetBefore.x &&
+            (rect(a).width < targetBefore.width || rect(a).height < targetBefore.height),
+            'Target is split along its longest direction instead of swapping positions');
+        inserted.delete(global.get_current_time());
+        await delay(300);
+        ext._tiler.retile();
+        await delay(500);
+        await this._borderTests(ext, a, b, assert);
+        ext._tiler.retile();
+        await delay(500);
         // Exercise the actual menu and its native submenu items.
         a.activate(global.get_current_time());
         await delay(200);
@@ -199,6 +237,140 @@ export default class TestDriver extends Extension {
         a.delete(global.get_current_time());
         b.delete(global.get_current_time());
         this._finish(log.join('\n'));
+    }
+
+    async _borderTests(ext, a, b, assert) {
+        const tiler = ext._tiler;
+        const seat = Clutter.get_default_backend().get_default_seat();
+        const pointer = seat.create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
+        const keyboard = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+        const move = async (x, y) => {
+            pointer.notify_absolute_motion(GLib.get_monotonic_time(), x, y);
+            await delay(100);
+        };
+        const press = async state => {
+            pointer.notify_button(GLib.get_monotonic_time(), 1, state);
+            await delay(120);
+        };
+        const record = [...tiler._borders._actors.values()][0];
+        assert(!!record?.actor.visible, 'Shared tile boundary has a draggable handle');
+        const item = record.item;
+        const start = rect(a);
+        const before = rect(b);
+        await move(item.position, item.rect.y + item.rect.height * 0.4);
+        const modalCount = Main.modalCount;
+        await press(Clutter.ButtonState.PRESSED);
+        assert(!!tiler._borders._drag && Main.modalCount === modalCount + 1,
+            'Real mouse press grabs the shared boundary');
+        await move(item.position + 90, item.rect.y + item.rect.height * 0.4);
+        await delay(200);
+        assert(rect(a).width > start.width + 50 && rect(b).width < before.width - 50,
+            'Dragging the boundary resizes both adjacent windows live');
+        await press(Clutter.ButtonState.RELEASED);
+        await delay(500);
+        assert(!tiler._borders._drag && Main.modalCount === modalCount && rect(a).width > start.width + 50,
+            'Boundary release persists the ratio and releases the input grab');
+        const retained = rect(a).width;
+        const current = record.item;
+        await move(current.position, current.rect.y + current.rect.height * 0.4);
+        await press(Clutter.ButtonState.PRESSED);
+        await move(current.position + 100, current.rect.y + current.rect.height * 0.4);
+        keyboard.notify_keyval(GLib.get_monotonic_time(), Clutter.KEY_Escape, Clutter.KeyState.PRESSED);
+        keyboard.notify_keyval(GLib.get_monotonic_time(), Clutter.KEY_Escape, Clutter.KeyState.RELEASED);
+        await press(Clutter.ButtonState.RELEASED);
+        await delay(500);
+        assert(Math.abs(rect(a).width - retained) <= 1 && Main.modalCount === modalCount,
+            'Escape restores the previous split ratio');
+        // Exercise the native resize handler with a programmatic frame change.
+        tiler._beginResize(a, Meta.GrabOp.KEYBOARD_RESIZING_UNKNOWN);
+        assert(!tiler._resizeGrab, 'Undirected keyboard resize does not accidentally select north/west borders');
+        ext._settings.set_int('gap', 0);
+        await delay(400);
+        tiler._grabbing = true;
+        tiler._beginResize(a, Meta.GrabOp.RESIZING_E);
+        const nativeStart = rect(a);
+        a.move_resize_frame(true, nativeStart.x, nativeStart.y, nativeStart.width + 60, nativeStart.height);
+        await delay(400);
+        tiler._updateResize();
+        tiler._resizeGrab = null;
+        tiler._grabbing = false;
+        tiler.queue();
+        await delay(500);
+        assert(rect(a).width > nativeStart.width + 30, 'Native window-edge resizing updates and retains the tile split');
+        assert([...tiler._borders._actors.values()][0].actor.width >= 6,
+            'Zero-gap layouts retain a usable boundary hit target');
+        ext._settings.set_int('gap', 8);
+        ext._settings.set_string('split-mode', 'vertical');
+        tiler.retile();
+        await delay(500);
+        const vertical = [...tiler._borders._actors.values()][0].item;
+        const top = rect(a).height;
+        const bottom = rect(b).height;
+        await move(vertical.rect.x + vertical.rect.width / 2, vertical.position);
+        await press(Clutter.ButtonState.PRESSED);
+        await move(vertical.rect.x + vertical.rect.width / 2, vertical.position + 60);
+        await press(Clutter.ButtonState.RELEASED);
+        await delay(400);
+        assert(rect(a).height > top + 30 && rect(b).height < bottom - 30,
+            'Horizontal boundary drags resize the upper and lower tile');
+        const active = [...tiler._borders._actors.values()][0].item;
+        await move(active.rect.x + active.rect.width / 2, active.position);
+        await press(Clutter.ButtonState.PRESSED);
+        const borders = tiler._borders;
+        assert(!!borders._drag, 'Boundary owns a grab before disabling tiling');
+        ext._toggle.checked = false;
+        await press(Clutter.ButtonState.RELEASED);
+        assert(!borders._drag && borders._actors.size === 0 && !tiler._borders && Main.modalCount === modalCount,
+            'Disabling during a boundary drag removes handles and releases the grab');
+        ext._settings.set_string('split-mode', 'auto');
+        ext._toggle.checked = true;
+        await delay(500);
+        Gio.Subprocess.new(['python3', GLib.getenv('NEXTILE_TEST_FIXTURE'), 'NexTile resize constraint', 'minimum'],
+            Gio.SubprocessFlags.NONE);
+        await delay(1000);
+        const constrained = global.get_window_actors().map(actor => actor.meta_window)
+            .find(window => window.title === 'NexTile resize constraint');
+        assert(!!constrained && !tiler.isFloating(constrained), 'Constrained app fits before dragging the boundary');
+        const boundary = [...tiler._borders._actors.values()].find(record => record.item.axis === 'horizontal').item;
+        const initial = rect(constrained);
+        await move(boundary.position, boundary.rect.y + boundary.rect.height * 0.3);
+        await press(Clutter.ButtonState.PRESSED);
+        assert(tiler._borders._drag?.record.item.node === boundary.node, 'Minimum-size test grabs the intended boundary');
+        await move(boundary.rect.x + 400, boundary.rect.y + boundary.rect.height * 0.3);
+        await press(Clutter.ButtonState.RELEASED);
+        await delay(700);
+        const restored = !tiler.isFloating(constrained) && Math.abs(rect(constrained).width - initial.width) <= 1;
+        assert(restored, 'Client minimum size restores the previous ratio without floating the app' +
+            (restored ? '' : ` (before=${initial.width}, after=${rect(constrained).width}, floating=${tiler.isFloating(constrained)}, ratio=${boundary.node.ratio})`));
+        constrained.delete(global.get_current_time());
+        await delay(400);
+    }
+
+    async _terminalTests(assert) {
+        Gio.Subprocess.new(['gnome-terminal', '--wait', '--hide-menubar', '--title=NexTile Transparency',
+            '--', 'python3', GLib.getenv('NEXTILE_TERMINAL_FIXTURE')], Gio.SubprocessFlags.NONE);
+        await delay(1800);
+        const window = global.get_window_actors().map(actor => actor.meta_window)
+            .find(win => /gnome[.-]terminal/i.test(win.get_wm_class() ?? ''));
+        assert(!!window, 'Real GNOME Terminal opens with the isolated transparency configuration');
+        const frame = window.get_frame_rect();
+        const path = `${GLib.getenv('NEXTILE_TEST_RESULT')}.terminal.png`;
+        const stream = Gio.File.new_for_path(path).replace(null, false, Gio.FileCreateFlags.NONE, null);
+        const screenshot = new Shell.Screenshot();
+        await new Promise((resolve, reject) => screenshot.screenshot_area(frame.x, frame.y,
+            frame.width, frame.height, stream, (source, result) => {
+                try { source.screenshot_area_finish(result); resolve(); } catch (error) { reject(error); }
+            }));
+        stream.close(null);
+        const pixbuf = GdkPixbuf.Pixbuf.new_from_file(path);
+        const pixels = pixbuf.get_pixels();
+        const offset = (frame.height - 40) * pixbuf.rowstride + (frame.width - 40) * pixbuf.n_channels;
+        const actual = Array.from(pixels.slice(offset, offset + 3));
+        assert(actual.every((value, i) => Math.abs(value - [22, 63, 68][i]) <= 6),
+            `Terminal background blends at 50 percent with the desktop (${actual.join(',')})`);
+        assert(window.get_compositor_private().opacity === 255, 'Terminal text is not faded by whole-window opacity');
+        window.delete(global.get_current_time());
+        await delay(400);
     }
 
     async _searchTests(ext, assert) {
@@ -281,8 +453,8 @@ export default class TestDriver extends Extension {
         const section = search._results._sections.get(remote).display;
         assert(section._content.get_n_children() === 5 && section.providerInfo._moreLabel.text.includes('3'),
             'Native provider layout shows five results and the remaining count');
-        assert(section._container.get_theme_node().get_background_color().alpha === 0,
-            'Provider category cards have transparent backgrounds');
+        assert(Math.abs(section._container.get_theme_node().get_background_color().alpha - 128) <= 1,
+            'Provider category cards retain a half-transparent background');
         assert(remote.display === nativeRemoteDisplay, 'Overview provider widgets remain untouched');
         const resultStream = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.results.png`)
             .replace(null, false, Gio.FileCreateFlags.NONE, null);

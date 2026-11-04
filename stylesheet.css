@@ -74,8 +74,7 @@
 }
 .nextile-search-entry StIcon { color: #dddddf; }
 .nextile-search-entry .hint-text { color: #dddddf; }
-.nextile-native-results, .nextile-native-results #searchResultsContent,
-.nextile-native-results .search-section-content {
+.nextile-native-results, .nextile-native-results #searchResultsContent {
     background-color: transparent;
     border-color: transparent;
     box-shadow: none;
@@ -86,3 +85,12 @@
 .nextile-native-results .list-search-result:selected,
 .nextile-native-results .list-search-result:focus,
 .nextile-native-results .list-search-result:hover { background-color: rgba(255, 255, 255, 0.18); }
+
+.nextile-native-results .search-section-content {
+    background-color: rgba(48, 48, 52, 0.5);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.nextile-tile-border { background-color: transparent; border-radius: 4px; }
+.nextile-tile-border:hover { background-color: rgba(255, 255, 255, 0.35); }
+.nextile-tile-border:active { background-color: rgba(140, 190, 255, 0.65); }

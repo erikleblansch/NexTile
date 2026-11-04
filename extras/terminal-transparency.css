@@ -1,0 +1,8 @@
+/* NexTile: translucent GNOME Terminal background; text stays opaque. */
+terminal-window.background {
+    background-color: transparent;
+}
+terminal-window vte-terminal {
+    background-color: rgba(32, 32, 36, 0.5);
+    color: #ffffff;
+}
