@@ -115,7 +115,7 @@ make pack
 make install
 ```
 
-`make pack` creates a reproducible ZIP in `dist/`, including compiled settings and translations. It excludes the demo, tests and development tools. For the JavaScript lint check, install Node.js 20.19+, 22.13+ or 24+, then run `npm ci --ignore-scripts && npm run lint`.
+`make pack` creates a reproducible ZIP in `dist/`, including schema XML and compiled translations; GNOME compiles the settings during installation. It excludes the demo, tests and development tools. For the JavaScript lint check, install Node.js 20.19+, 22.13+ or 24+, then run `npm ci --ignore-scripts && npm run lint`.
 
 For isolated runtime tests, install GNOME Shell, GTK 3 Python bindings, GNOME Terminal and D-Bus; X11 testing also needs Xephyr:
 

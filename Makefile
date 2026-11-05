@@ -1,7 +1,7 @@
 UUID = nextile@erikleblansch.github.io
 EXTENSION_DIR = $(HOME)/.local/share/gnome-shell/extensions/$(UUID)
 
-.PHONY: test pack install translations
+.PHONY: test pack install translations review
 translations:
 	python3 tools/translations.py
 test: translations
@@ -15,6 +15,10 @@ test: translations
 pack: test
 	python3 tools/pack.py
 	python3 tests/package.py
+
+# Activate a venv with tools/review-requirements.txt before running this target.
+review: pack
+	python3 tools/review.py
 
 install: pack
 	gnome-extensions install --force dist/$(UUID).shell-extension.zip

@@ -11,9 +11,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - run: sudo apt-get update && sudo apt-get install -y gjs libglib2.0-bin gettext
+      - run: sudo apt-get update && sudo apt-get install -y gjs libglib2.0-bin gettext python3-venv
       - run: make pack
       - run: npm ci --include=dev --ignore-scripts && npm run lint
+      - name: Shexli report and documented triage
+        run: |
+          python3 -m venv /tmp/nextile-review
+          /tmp/nextile-review/bin/pip install -r tools/review-requirements.txt
+          PATH="/tmp/nextile-review/bin:$PATH" python3 tools/review.py
   runtime:
     name: GNOME ${{ matrix.shell }} Wayland
     runs-on: ubuntu-24.04

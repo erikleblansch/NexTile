@@ -15,8 +15,10 @@ with tempfile.TemporaryDirectory(prefix="nextile-pack-") as temporary:
     subprocess.run(["glib-compile-schemas", "--strict", f"--targetdir={temporary}",
                     str(ROOT / "schemas")], check=True)
     with zipfile.ZipFile(ROOT / "dist" / NAME, "w", zipfile.ZIP_DEFLATED) as archive:
-        for name in FILES + ["schemas/gschemas.compiled"] + sorted(str(p.relative_to(ROOT)) for p in (ROOT / "locale").rglob("*.mo")):
-            source = pathlib.Path(temporary) / "gschemas.compiled" if name.endswith(".compiled") else ROOT / name
+        # GNOME 45+ compiles the XML when installing the extension. Keep strict
+        # validation above, but do not ship its generated binary in the ZIP.
+        for name in FILES + sorted(str(p.relative_to(ROOT)) for p in (ROOT / "locale").rglob("*.mo")):
+            source = ROOT / name
             info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16

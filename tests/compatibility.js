@@ -19,6 +19,17 @@ for (const modern of [false, true]) {
     unmaximize(window, 3);
     assert(maximizeFlags(window) === 0, 'Both axes restored');
 }
+const modernWithLegacyStubs = {
+    get_maximize_flags: () => 0,
+    set_maximize_flags: () => {},
+    set_unmaximize_flags: () => {},
+    get_maximized: () => { throw new Error('Removed API must not be called'); },
+    maximize: () => { throw new Error('Old maximize must not be called'); },
+    unmaximize: () => { throw new Error('Old unmaximize must not be called'); },
+};
+assert(maximizeFlags(modernWithLegacyStubs) === 0, 'Modern zero flags do not fall through to the removed API');
+maximize(modernWithLegacyStubs, 3);
+unmaximize(modernWithLegacyStubs, 3);
 const loop = new GLib.MainLoop(null, false);
 (async () => {
     for (const kind of ['callback', 'promise', 'both']) {

@@ -1,0 +1,22 @@
+[
+  {
+    "rule_id": "EGO-A-005",
+    "severity": "manual_review",
+    "evidence": [{"path": "nativeSearch.js", "snippet": "St.Clipboard.get_default()"}]
+  },
+  {
+    "rule_id": "EGO-C49-003",
+    "severity": "error",
+    "evidence": [{"path": "tiler.js", "snippet": "unmaximize(window, Meta.MaximizeFlags.BOTH)"}]
+  },
+  {
+    "rule_id": "EGO-C49-004",
+    "severity": "error",
+    "evidence": [{"path": "compatibility.js", "snippet": "window.get_maximized()"}]
+  },
+  {
+    "rule_id": "EGO-M-004",
+    "severity": "error",
+    "evidence": [{"path": "metadata.json", "snippet": "shell-version=['46', '47', '48', '49', '50', '51']"}]
+  }
+]

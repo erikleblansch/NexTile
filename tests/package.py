@@ -15,7 +15,7 @@ with zipfile.ZipFile(root / 'dist/nextile@erikleblansch.github.io.shell-extensio
         path = PurePosixPath(name)
         assert not path.is_absolute() and '..' not in path.parts, name
         assert path.parts[0] not in {'tests', 'tools', 'docs', 'po', 'node_modules', '.git'}, name
-        assert path.suffix in {'.js', '.json', '.css', '.xml', '.compiled', '.mo'} or name == 'LICENSE', name
+        assert path.suffix in {'.js', '.json', '.css', '.xml', '.mo'} or name == 'LICENSE', name
         assert package.read(name), f'Empty file: {name}'
     metadata = json.loads(package.read('metadata.json'))
     assert metadata['uuid'] == 'nextile@erikleblansch.github.io'
@@ -28,7 +28,7 @@ with zipfile.ZipFile(root / 'dist/nextile@erikleblansch.github.io.shell-extensio
     schema = ET.fromstring(package.read(f'schemas/{schema_id}.gschema.xml')).find('schema')
     assert schema.get('id') == schema_id
     assert schema.get('path') == '/org/gnome/shell/extensions/nextile/'
-    assert 'schemas/gschemas.compiled' in names
+    assert 'schemas/gschemas.compiled' not in names, 'GNOME 45+ compiles schemas at installation'
     for lang in ('nl', 'de', 'fr', 'es', 'pt', 'it', 'pl', 'ja', 'zh', 'uk'):
         name = f'locale/{lang}/LC_MESSAGES/{metadata["gettext-domain"]}.mo'
         catalog = gettext.GNUTranslations(io.BytesIO(package.read(name)))

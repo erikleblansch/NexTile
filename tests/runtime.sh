@@ -2,14 +2,16 @@
 # Isolated bus, settings, extension directory and compositor; never replaces Shell.
 set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "$0")/.." && pwd)
+python3 "$repo_dir/tools/pack.py"
 test_dir=$(mktemp -d /tmp/nextile-runtime.XXXXXX)
 echo "Runtime evidence: $test_dir"
 mkdir -p "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io" "$test_dir/config" "$test_dir/runtime"
 chmod 700 "$test_dir/runtime"
-cp "$repo_dir/"{extension.js,compatibility.js,terminalStyle.js,layout.js,tiler.js,tileBorders.js,panel.js,panelGeometry.js,compactSearch.js,nativeSearch.js,stylesheet.css,metadata.json} "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
-cp -r "$repo_dir/locale" "$repo_dir/extras" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
-cp -r "$repo_dir/schemas" "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/"
-glib-compile-schemas --strict "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/schemas"
+# Exercise installation of the actual upload package, including GNOME's schema
+# compilation. Do not mask a broken ZIP by compiling schemas in the harness.
+XDG_DATA_HOME="$test_dir/data" XDG_CONFIG_HOME="$test_dir/config" XDG_CACHE_HOME="$test_dir/cache" \
+    gnome-extensions install --force "$repo_dir/dist/nextile@erikleblansch.github.io.shell-extension.zip"
+test -s "$test_dir/data/gnome-shell/extensions/nextile@erikleblansch.github.io/schemas/gschemas.compiled"
 cp -r "${NEXTILE_DRIVER:-$repo_dir/tests/driver}" "$test_dir/data/gnome-shell/extensions/nextile-test@local"
 export XDG_DATA_HOME="$test_dir/data" XDG_CONFIG_HOME="$test_dir/config" XDG_RUNTIME_DIR="$test_dir/runtime"
 export NEXTILE_TEST_RESULT="$test_dir/result.txt" NEXTILE_TEST_FIXTURE="$repo_dir/tests/fixture.py"

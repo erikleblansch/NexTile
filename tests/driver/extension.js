@@ -53,6 +53,7 @@ export default class TestDriver extends Extension {
         };
         assert(ext?._tiler?._running, 'Extension loads and tiler starts');
         assert(ext._toggle.title === 'NexTile' && !!ext._toggle.menu, 'Native Quick Settings toggle with menu');
+        await ext._terminalTask;
         const floatChildren = ext._toggle._float.get_children();
         const warning = floatChildren.find(child => child.icon_name === 'dialog-warning-symbolic');
         assert(warning && floatChildren.indexOf(warning) < floatChildren.indexOf(ext._toggle._float.label),
@@ -77,6 +78,7 @@ export default class TestDriver extends Extension {
             return;
         }
         if (GLib.getenv('NEXTILE_TEST_ONLY') !== 'tiling') {
+            await this._settingsTests(ext, assert);
             await this._panelTests(ext, assert);
             await this._searchTests(ext, assert);
             await this._terminalTests(ext, assert);
@@ -287,7 +289,43 @@ export default class TestDriver extends Extension {
         const tiler = ext._tiler;
         const appearance = ext._appearance;
         const search = ext._search;
+        const menu = ext._toggle.menu;
+        const menuParent = menu.actor.get_parent();
+        const menuCount = menuParent.get_n_children();
+        let menuDestroyed = false;
+        menu.connect('destroy', () => { menuDestroyed = true; });
+        // Hold a real file read across disable/re-enable. A late result from
+        // the old instance must not change the new instance's preference/UI.
+        ext._settings.set_boolean('terminal-transparent', false);
+        await ext._terminalTask;
+        const terminal = ext._terminal;
+        const read = terminal._read.bind(terminal);
+        let release;
+        let started;
+        const blocked = new Promise(resolve => { release = resolve; });
+        const entered = new Promise(resolve => { started = resolve; });
+        terminal._read = async () => {
+            const snapshot = await read();
+            started();
+            await blocked;
+            return snapshot;
+        };
+        ext._settings.set_boolean('terminal-transparent', true);
+        const pendingTerminal = ext._terminalTask;
+        await entered;
+        const modalCount = Main.modalCount;
+        Main.panel.statusArea.quickSettings.menu.open();
+        menu.open();
+        await delay(100);
         await Main.extensionManager.disableExtension('nextile@erikleblansch.github.io');
+        assert(menuDestroyed && menuParent.get_n_children() === menuCount - 1,
+            'Disable destroys the separately parented Quick Settings menu');
+        assert(!menu.isOpen && !Main.panel.statusArea.quickSettings.menu._activeMenu,
+            'Disabling an open dropdown releases its active-menu reference');
+        Main.panel.statusArea.quickSettings.menu.close();
+        assert(Main.modalCount === modalCount, 'Disable releases the open dropdown modal grab');
+        assert(terminal._cancellable.is_cancelled() && !ext._terminalTask && !ext._terminal,
+            'Disable cancels terminal work and clears owned references synchronously');
         await delay(600);
         assert(!tiler._running && tiler._signals.length === 0 && tiler._windows.size === 0 && !ext._toggle,
             'Extension disable destroys UI and all owned resources');
@@ -300,6 +338,15 @@ export default class TestDriver extends Extension {
         assert(search._destroyed && !search._results._timeout && !search._grab && !search._nativeHandler &&
             search._signals.length === 0, 'Disable removes search modal, signals and restores Super handler');
         await Main.extensionManager.enableExtension('nextile@erikleblansch.github.io');
+        await ext._terminalTask;
+        ext._settings.set_boolean('terminal-transparent', false);
+        await ext._terminalTask;
+        const currentTask = ext._terminalTask;
+        release();
+        await pendingTerminal;
+        assert(ext._terminalTask === currentTask && !ext._settings.get_boolean('terminal-transparent') &&
+            !await ext._terminal.readEnabled(), 'Late cancelled terminal work cannot change the re-enabled instance');
+        assert(menuParent.get_n_children() === menuCount, 'Re-enable adds exactly one dropdown without accumulating menus');
         await delay(600);
         assert(ext._tiler._running, 'Extension can be enabled again');
         if (!GLib.getenv('NEXTILE_TEST_KEEP_WINDOWS')) {
@@ -420,6 +467,7 @@ export default class TestDriver extends Extension {
         // Exercise the installed preference, including distribution-specific
         // GTK style properties, before the terminal process reads its CSS.
         ext._settings.set_boolean('terminal-transparent', true);
+        await ext._terminalTask;
         Gio.Subprocess.new(['gnome-terminal', '--wait', '--hide-menubar', '--title=NexTile Transparency',
             '--', 'python3', GLib.getenv('NEXTILE_TERMINAL_FIXTURE')], Gio.SubprocessFlags.NONE);
         await delay(1800);
@@ -697,12 +745,14 @@ export default class TestDriver extends Extension {
         const read = () => new TextDecoder().decode(file.load_contents(null)[1]);
         const original = read();
         ext._toggle._terminalSwitch.emit('toggled', true);
+        await ext._terminalTask;
         await delay(200);
         assert(ext._settings.get_boolean('terminal-transparent') && ext._toggle._terminalSwitch.state,
             'Terminal switch stores and displays enabled state');
         assert(read().startsWith(original) && read().includes('BEGIN NEXTILE TERMINAL TRANSPARENCY'),
             'Terminal toggle adds managed CSS and preserves existing styles');
         ext._toggle._terminalSwitch.emit('toggled', false);
+        await ext._terminalTask;
         await delay(200);
         assert(!ext._settings.get_boolean('terminal-transparent') && !ext._toggle._terminalSwitch.state,
             'Terminal switch stores and displays disabled state');

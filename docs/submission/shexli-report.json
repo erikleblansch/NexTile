@@ -1,0 +1,96 @@
+{
+  "spec_version": "2026-04-02",
+  "summary": {
+    "input_path": "dist/nextile@erikleblansch.github.io.shell-extension.zip",
+    "finding_count": 4,
+    "severity_counts": {
+      "error": 3,
+      "manual_review": 1
+    },
+    "status": "issues_found"
+  },
+  "findings": [
+    {
+      "rule_id": "EGO-C49-004",
+      "title": "extensions targeting GNOME 49 must not call Meta.Window.get_maximized",
+      "severity": "error",
+      "message": "This extension explicitly targets GNOME Shell 49 but still calls removed `Meta.Window.get_maximized()`.",
+      "evidence": [
+        {
+          "path": "dist/nextile@erikleblansch.github.io.shell-extension.zip:compatibility.js",
+          "line": 5,
+          "snippet": "window.get_maximized()"
+        }
+      ],
+      "source_url": "https://gjs.guide/extensions/upgrading/gnome-shell-49.html#meta-window",
+      "source_section": "Meta.Window"
+    },
+    {
+      "rule_id": "EGO-A-005",
+      "title": "extensions should not access the clipboard directly",
+      "severity": "manual_review",
+      "message": "Direct clipboard access via `St.Clipboard.get_default()` requires reviewer scrutiny.",
+      "evidence": [
+        {
+          "path": "dist/nextile@erikleblansch.github.io.shell-extension.zip:nativeSearch.js",
+          "line": 124,
+          "snippet": "St.Clipboard.get_default()"
+        }
+      ],
+      "source_url": "https://gjs.guide/extensions/review-guidelines/review-guidelines.html#clipboard-access-must-be-declared",
+      "source_section": "Review Guidelines"
+    },
+    {
+      "rule_id": "EGO-C49-003",
+      "title": "extensions targeting GNOME 49 must not call maximize or unmaximize with Meta.MaximizeFlags",
+      "severity": "error",
+      "message": "This extension explicitly targets GNOME Shell 49 but still passes `Meta.MaximizeFlags` to `maximize()` or `unmaximize()`.",
+      "evidence": [
+        {
+          "path": "dist/nextile@erikleblansch.github.io.shell-extension.zip:tiler.js",
+          "line": 253,
+          "snippet": "unmaximize(window, Meta.MaximizeFlags.BOTH)"
+        }
+      ],
+      "source_url": "https://gjs.guide/extensions/upgrading/gnome-shell-49.html#meta-window",
+      "source_section": "Meta.Window"
+    },
+    {
+      "rule_id": "EGO-M-004",
+      "title": "metadata shell-version must only include plausible stable releases and at most one development release",
+      "severity": "error",
+      "message": "Field `shell-version` contains invalid values, more than one development release, or implausible future releases.",
+      "evidence": [
+        {
+          "path": "dist/nextile@erikleblansch.github.io.shell-extension.zip:metadata.json",
+          "line": null,
+          "snippet": "shell-version=['46', '47', '48', '49', '50', '51']"
+        }
+      ],
+      "source_url": "https://gjs.guide/extensions/review-guidelines/review-guidelines.html#metadata-json-must-be-well-formed",
+      "source_section": "metadata.json must be well-formed"
+    }
+  ],
+  "artifacts": {
+    "root": "dist/nextile@erikleblansch.github.io.shell-extension.zip",
+    "metadata_path": "dist/nextile@erikleblansch.github.io.shell-extension.zip:metadata.json",
+    "js_file_count": 10,
+    "file_count": 25,
+    "limits": {
+      "max_files": 5000,
+      "max_file_size_bytes": 10485760,
+      "max_total_file_bytes": 52428800,
+      "max_zip_members": 5000,
+      "max_zip_uncompressed_bytes": 52428800,
+      "max_zip_compression_ratio": 1000
+    },
+    "target_versions": [
+      46,
+      47,
+      48,
+      49,
+      50,
+      51
+    ]
+  }
+}

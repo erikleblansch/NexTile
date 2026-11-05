@@ -7,6 +7,7 @@ import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/ex
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as QuickSettings from 'resource:///org/gnome/shell/ui/quickSettings.js';
+import {PopupAnimation} from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import {Tiler} from './tiler.js';
 import {PanelAppearance} from './panel.js';
 import {CompactSearch} from './compactSearch.js';
@@ -60,7 +61,7 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this._panelDestroyId = Main.panel.connect('destroy', () => this._disconnectSignals());
         this.connect('destroy', () => this._disconnectSignals());
         this._rememberFocus();
-        this.menu.connect('open-state-changed', (_menu, open) => {
+        this._menuOpenId = this.menu.connect('open-state-changed', (_menu, open) => {
             if (open)
                 this._sync();
         });
@@ -119,6 +120,13 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
             this._focus.disconnect(this._focusUnmanagedId);
         this._focusUnmanagedId = 0;
         this._focus = null;
+        this.menu.disconnect(this._menuOpenId);
+        this._menuOpenId = 0;
+        // Quick Settings parents the dropdown in its own overlay. Destroying
+        // this button alone leaves that menu, its signals and modal grab alive.
+        this.menu.close(PopupAnimation.NONE);
+        this.menu.destroy();
+        this.menu = null;
     }
 
     destroy() {
@@ -131,15 +139,7 @@ export default class NexTileExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._terminal = new TerminalStyle(this.dir.get_child('extras').get_child('terminal-transparency.css'));
-        try {
-            // Adopt the optional CSS installed by NexTile 0.5, without changing
-            // the appearance of Terminal for new installations.
-            if (this._settings.get_user_value('terminal-transparent') === null)
-                this._settings.set_boolean('terminal-transparent', this._terminal.enabled);
-            this._syncTerminal(false);
-        } catch (error) {
-            console.warn(`NexTile terminal: ${error.message}`);
-        }
+        this._terminalRequest = 0;
         this._tiler = new Tiler(this._settings);
         this._indicator = new QuickSettings.SystemIndicator();
         this._toggle = new NexTileToggle(this._settings, this._tiler);
@@ -160,28 +160,55 @@ export default class NexTileExtension extends Extension {
         this._syncPanel();
         this._syncSearch();
         this._sync();
+        this._syncTerminal(false);
     }
 
     _syncTerminal(notify) {
         if (this._updatingTerminal)
             return;
-        this._updatingTerminal = true;
-        try {
-            const changed = this._terminal.apply(this._settings.get_boolean('terminal-transparent'));
-            if (changed && notify)
-                Main.notify('NexTile', _('Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile.'));
-        } catch (error) {
-            console.warn(`NexTile terminal: ${error.message}`);
-            // A failed write must not leave the switch claiming it succeeded.
+        const terminal = this._terminal;
+        const settings = this._settings;
+        const request = ++this._terminalRequest;
+        const current = () => this._terminal === terminal && this._terminalRequest === request;
+        const setState = enabled => {
+            this._updatingTerminal = true;
             try {
-                this._settings.set_boolean('terminal-transparent', this._terminal.enabled);
-            } catch {
-                // Leave the existing setting intact if the file is unreadable.
+                settings.set_boolean('terminal-transparent', enabled);
+            } finally {
+                this._updatingTerminal = false;
             }
-            Main.notify('NexTile', _('Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact.'));
-        } finally {
-            this._updatingTerminal = false;
-        }
+        };
+        this._terminalTask = (async () => {
+            try {
+                // Adopt the old optional CSS only if the user has not changed
+                // this preference while the asynchronous read was pending.
+                if (settings.get_user_value('terminal-transparent') === null) {
+                    const enabled = await terminal.readEnabled();
+                    if (!current())
+                        return;
+                    if (settings.get_user_value('terminal-transparent') === null)
+                        setState(enabled);
+                }
+                const changed = await terminal.apply(settings.get_boolean('terminal-transparent'));
+                if (current() && changed && notify)
+                    Main.notify('NexTile', _('Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile.'));
+            } catch (error) {
+                if (!current() || error.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    return;
+                console.warn(`NexTile terminal: ${error.message}`);
+                // Only the latest request may roll the switch back or notify.
+                try {
+                    const enabled = await terminal.readEnabled();
+                    if (current())
+                        setState(enabled);
+                } catch {
+                    // Leave the preference intact if the file is unreadable.
+                }
+                if (current())
+                    Main.notify('NexTile', _('Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact.'));
+            }
+        })();
+        return this._terminalTask;
     }
 
     _syncPanel() {
@@ -215,17 +242,21 @@ export default class NexTileExtension extends Extension {
 
     disable() {
         this._settings?.disconnect(this._settingsId);
+        this._terminal?.destroy();
+        this._terminal = null;
+        this._terminalTask = null;
         this._search?.destroy();
         this._search = null;
         this._appearance?.destroy();
         this._appearance = null;
         this._tiler?.stop();
         this._toggle?.destroy();
+        if (this._indicator)
+            this._indicator.quickSettingsItems = [];
         this._indicator?.destroy();
         this._toggle = null;
         this._indicator = null;
         this._tiler = null;
-        this._terminal = null;
         this._settings = null;
     }
 }

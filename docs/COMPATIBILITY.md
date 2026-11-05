@@ -1,6 +1,6 @@
 # GNOME compatibility
 
-NexTile 0.7.0 targets GNOME Shell **46, 47, 48, 49, 50 and 51**. The release includes API adaptations, not just additional metadata entries.
+NexTile 0.7.1 targets GNOME Shell **46, 47, 48, 49, 50 and 51**. The release includes API adaptations, not just additional metadata entries.
 
 | GNOME Shell / Mutter | Runtime environment | Session |
 | --- | --- | --- |
