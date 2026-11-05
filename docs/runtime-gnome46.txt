@@ -1,6 +1,13 @@
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
 PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows en locale
+PASS: Search follows en locale
+PASS: Workspace accessibility follows en locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
 PASS: Panel is fully transparent
 PASS: Clock and calendar button moved to the left
 PASS: Native dots hidden while numbered ribbon is present
@@ -38,7 +45,7 @@ PASS: Overview provider widgets remain untouched
 PASS: Down selects next application
 PASS: Up selects previous application
 PASS: Search neighbors slide forward without reversing direction between animation frames
-PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x563f03069af0 ClutterText ("nextile search test")], entryFocus=true)
+PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x55f7cc93f640 ClutterText ("nextile search test")], entryFocus=true)
 PASS: Workspace scrolling keeps search centered and moves the other circles around it
 PASS: Search neighbors also slide backward without bouncing
 PASS: Enter launches application and closes search without showing Activities
@@ -122,8 +129,14 @@ PASS: Dropdown returns active window to tiling
 PASS: Toggle off disconnects signals and removes sources
 PASS: Toggle off restores original window size
 PASS: Toggle on retiles existing windows
+PASS: Disable destroys the separately parented Quick Settings menu
+PASS: Disabling an open dropdown releases its active-menu reference
+PASS: Disable releases the open dropdown modal grab
+PASS: Disable cancels terminal work and clears owned references synchronously
 PASS: Extension disable destroys UI and all owned resources
 PASS: Disable clears startup tracking and expected window geometry
 PASS: Disable restores native panel and releases panel resources
 PASS: Disable removes search modal, signals and restores Super handler
+PASS: Late cancelled terminal work cannot change the re-enabled instance
+PASS: Re-enable adds exactly one dropdown without accumulating menus
 PASS: Extension can be enabled again

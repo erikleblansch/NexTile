@@ -1,6 +1,6 @@
 # Validation — NexTile 0.7.1
 
-Tested on **5 November 2026**. Local GNOME 48.7 Wayland and X11 checks passed for 0.7.1, including the actual ZIP installation, open-menu cleanup and cancellation across disable/re-enable. The five-version CI matrix must also pass before the 0.7.1 release is published. The previous [0.7.0 evidence](https://github.com/erikleblansch/NexTile/blob/v0.7.0/docs/VALIDATION.md) remains available separately.
+Tested on **5 November 2026**. [GitHub Actions run 42054860335](https://github.com/erikleblansch/NexTile/actions/runs/42054860335) passed all six jobs for commit `a7c057f`: pure/package/lint and Shexli triage, plus GNOME 46, 47, 49, 50 and 51 Wayland. Each Wayland runtime passed 142 assertions, including native ZIP installation, open-menu cleanup and cancellation across disable/re-enable. GNOME 48.7 was tested locally on Wayland (142 assertions) and X11 (139). The five container logs below are from this CI run. The previous [0.7.0 evidence](https://github.com/erikleblansch/NexTile/blob/v0.7.0/docs/VALIDATION.md) remains available separately.
 
 | Check | Result |
 | --- | --- |
@@ -9,18 +9,18 @@ Tested on **5 November 2026**. Local GNOME 48.7 Wayland and X11 checks passed fo
 | Compatibility adapters | Old/new maximize APIs, partial flags, callback/Promise completion and error propagation passed |
 | Terminal CSS | Asynchronous I/O, serialized rapid changes, cancellation, etag conflicts, permission/symlink preservation, backups, missing directories and malformed-marker rejection passed |
 | Translation catalogs | All 25 strings present in Dutch, German, French, Spanish, Portuguese, Italian, Polish, Japanese, Simplified Chinese and Ukrainian; placeholders, regional variants and English fallback passed |
-| GNOME 46.0 / Wayland | 0.7.1 CI confirmation pending; previous version evidence linked above |
-| GNOME 47.10 / Wayland | 0.7.1 CI confirmation pending; previous version evidence linked above |
+| GNOME 46.0 / Wayland | [142 runtime assertions passed](runtime-gnome46.txt), Ubuntu 24.04 container, Mutter 46.2 |
+| GNOME 47.10 / Wayland | [142 runtime assertions passed](runtime-gnome47.txt), Fedora 41 container |
 | GNOME 48.7 / X11 | [139 runtime assertions passed](runtime-x11.txt) |
 | GNOME 48.7 / Wayland | [142 runtime assertions passed](runtime-wayland.txt), two virtual monitors |
-| GNOME 49.10 / Wayland | 0.7.1 CI confirmation pending; previous version evidence linked above |
-| GNOME 50.6 / Wayland | 0.7.1 CI confirmation pending; previous version evidence linked above |
-| GNOME 51.1 / Wayland | 0.7.1 CI confirmation pending; previous version evidence linked above |
+| GNOME 49.10 / Wayland | [142 runtime assertions passed](runtime-gnome49.txt), Fedora 43 container |
+| GNOME 50.6 / Wayland | [142 runtime assertions passed](runtime-gnome50.txt), Fedora 44 container |
+| GNOME 51.1 / Wayland | [142 runtime assertions passed](runtime-gnome51.txt), Fedora 45 container |
 | Language and terminal-switch UI | Earlier 0.7.0 evidence: [seven isolated GNOME 48.7 sessions passed](runtime-locales.txt): pt_PT, it_IT, pl_PL, ja_JP, zh_CN, uk_UA, and ko_KR using the English fallback. Existing en/nl/de/fr/es UI checks passed for 0.6.0; all ten catalogs are checked for this release |
 | Final Shell logs | No JavaScript errors, GJS criticals, CSS parsing errors or NexTile search/contrast errors, including compositor shutdown |
 | JavaScript lint | ESLint recommended rules, no warnings |
 | Schema | Strict GLib schema compilation passed |
-| Release archive | Identical repeat builds; 25 files; metadata, license, schema and all ten compiled catalogs checked; no test/demo driver |
+| Release archive | Local and CI builds have identical SHA-256 `89acbd00cda1db6d95b1c643a78a6d8ae207b8bcd420bbdf90c1f611d18fc2db`; 25 files; metadata, license, schema and all ten compiled catalogs checked; no test/demo driver |
 | Demo | Unchanged 0.7.0 recording: real 1440 × 900 GNOME recording, H.264, 30 fps, 36.6 seconds; browser playback, seeking and mobile layout checked |
 
 ## Review regression checks

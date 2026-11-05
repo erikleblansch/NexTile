@@ -10,6 +10,8 @@ not a claim of zero findings or GNOME approval.
 The [complete JSON report](submission/shexli-report.json) is retained. The release
 also supplies the report and a checksum of the extension ZIP.
 
+Checked ZIP SHA-256: `89acbd00cda1db6d95b1c643a78a6d8ae207b8bcd420bbdf90c1f611d18fc2db`. The local and GitHub Actions builds match.
+
 ## Corrected in 0.7.1
 
 | Rule | Correction and verification |

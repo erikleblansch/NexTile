@@ -45,7 +45,7 @@ PASS: Overview provider widgets remain untouched
 PASS: Down selects next application
 PASS: Up selects previous application
 PASS: Search neighbors slide forward without reversing direction between animation frames
-PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x563f8f5fd0a0 ClutterText ("nextile search test")], entryFocus=true)
+PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x55a74b9f99b0 ClutterText ("nextile search test")], entryFocus=true)
 PASS: Workspace scrolling keeps search centered and moves the other circles around it
 PASS: Search neighbors also slide backward without bouncing
 PASS: Enter launches application and closes search without showing Activities
