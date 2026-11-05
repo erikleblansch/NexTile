@@ -37,8 +37,11 @@ export class TileBorders {
                     const cursor = record.item.axis === 'horizontal' ? 'E_RESIZE' : 'S_RESIZE';
                     if (actor.set_cursor_type)
                         actor.set_cursor_type(Clutter.CursorType[cursor]);
-                    else
-                        global.display.set_cursor(Meta.Cursor[cursor]);
+                    else {
+                        // Mutter 46/47 spell the cardinal directions in full.
+                        const legacy = record.item.axis === 'horizontal' ? 'EAST_RESIZE' : 'SOUTH_RESIZE';
+                        global.display.set_cursor(Meta.Cursor[cursor] ?? Meta.Cursor[legacy]);
+                    }
                     return Clutter.EVENT_PROPAGATE;
                 });
                 actor.connect('leave-event', () => {

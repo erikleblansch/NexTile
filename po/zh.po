@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr "Project-Id-Version: NexTile 0.7.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 12:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: zh\nLanguage: zh\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Type to search"
+msgstr "输入以搜索"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "Room for every window"
+msgstr "让每个窗口都有空间"
+
+msgid "Window gaps"
+msgstr "窗口间距"
+
+msgid "Automatic"
+msgstr "自动"
+
+msgid "Side by side"
+msgstr "并排"
+
+msgid "Stacked"
+msgstr "上下排列"
+
+msgid "Split direction"
+msgstr "分割方向"
+
+msgid "Float active window"
+msgstr "将活动窗口设为浮动"
+
+msgid "Reflow windows"
+msgstr "重新排列窗口"
+
+msgid "Restore windows when tiling is off"
+msgstr "关闭平铺时恢复窗口"
+
+msgid "Transparent top bar"
+msgstr "透明顶栏"
+
+msgid "Super opens search"
+msgstr "按 Super 键打开搜索"
+
+msgid "Transparent terminal"
+msgstr "透明终端"
+
+msgid "Off"
+msgstr "关闭"
+
+#, javascript-format
+msgid "Window gaps · %d px"
+msgstr "窗口间距 · %d 像素"
+
+msgid "Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile."
+msgstr "请关闭所有 GNOME 终端窗口并重新打开终端，以应用更改。请在终端配置中启用“使用系统主题中的颜色”。"
+
+msgid "Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact."
+msgstr "无法更新终端样式。请检查 GTK 配置是否可写，以及 NexTile 的 CSS 标记是否完整。"
+
+msgid "Searching…"
+msgstr "正在搜索…"
+
+msgid "No results"
+msgstr "无结果"
+
+msgid "Workspaces"
+msgstr "工作区"
+
+#, javascript-format
+msgid "Workspace %d"
+msgstr "工作区 %d"
+
+#, javascript-format
+msgid "Workspace %d, active — open overview"
+msgstr "工作区 %d，当前活动 — 打开概览"
+
+#, javascript-format
+msgid "Switch to workspace %d"
+msgstr "切换到工作区 %d"
+
+msgid "Drag tile boundary"
+msgstr "拖动平铺边界"

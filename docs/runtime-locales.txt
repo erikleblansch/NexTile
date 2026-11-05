@@ -1,61 +1,79 @@
-en_US
+Locale: pt_PT.UTF-8
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
-PASS: Quick Settings follows en locale
-PASS: Search follows en locale
-PASS: Workspace accessibility follows en locale
+PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows pt locale
+PASS: Search follows pt locale
+PASS: Workspace accessibility follows pt locale
 PASS: Terminal switch stores and displays enabled state
 PASS: Terminal toggle adds managed CSS and preserves existing styles
 PASS: Terminal switch stores and displays disabled state
 PASS: Terminal toggle removes only managed CSS
 
-nl_NL
+Locale: it_IT.UTF-8
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
-PASS: Quick Settings follows nl locale
-PASS: Search follows nl locale
-PASS: Workspace accessibility follows nl locale
+PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows it locale
+PASS: Search follows it locale
+PASS: Workspace accessibility follows it locale
 PASS: Terminal switch stores and displays enabled state
 PASS: Terminal toggle adds managed CSS and preserves existing styles
 PASS: Terminal switch stores and displays disabled state
 PASS: Terminal toggle removes only managed CSS
 
-de_DE
+Locale: pl_PL.UTF-8
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
-PASS: Quick Settings follows de locale
-PASS: Search follows de locale
-PASS: Workspace accessibility follows de locale
+PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows pl locale
+PASS: Search follows pl locale
+PASS: Workspace accessibility follows pl locale
 PASS: Terminal switch stores and displays enabled state
 PASS: Terminal toggle adds managed CSS and preserves existing styles
 PASS: Terminal switch stores and displays disabled state
 PASS: Terminal toggle removes only managed CSS
 
-fr_FR
+Locale: ja_JP.UTF-8
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
-PASS: Quick Settings follows fr locale
-PASS: Search follows fr locale
-PASS: Workspace accessibility follows fr locale
+PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows ja locale
+PASS: Search follows ja locale
+PASS: Workspace accessibility follows ja locale
 PASS: Terminal switch stores and displays enabled state
 PASS: Terminal toggle adds managed CSS and preserves existing styles
 PASS: Terminal switch stores and displays disabled state
 PASS: Terminal toggle removes only managed CSS
 
-es_ES
+Locale: zh_CN.UTF-8
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
-PASS: Quick Settings follows es locale
-PASS: Search follows es locale
-PASS: Workspace accessibility follows es locale
+PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows zh locale
+PASS: Search follows zh locale
+PASS: Workspace accessibility follows zh locale
 PASS: Terminal switch stores and displays enabled state
 PASS: Terminal toggle adds managed CSS and preserves existing styles
 PASS: Terminal switch stores and displays disabled state
 PASS: Terminal toggle removes only managed CSS
 
-ja_JP
+Locale: uk_UA.UTF-8
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
+PASS: Warning icon precedes the floating-window switch label
+PASS: Quick Settings follows uk locale
+PASS: Search follows uk locale
+PASS: Workspace accessibility follows uk locale
+PASS: Terminal switch stores and displays enabled state
+PASS: Terminal toggle adds managed CSS and preserves existing styles
+PASS: Terminal switch stores and displays disabled state
+PASS: Terminal toggle removes only managed CSS
+
+Locale: ko_KR.UTF-8
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Warning icon precedes the floating-window switch label
 PASS: Quick Settings follows en locale
 PASS: Search follows en locale
 PASS: Workspace accessibility follows en locale

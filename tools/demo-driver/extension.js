@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
+import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => { resolve(); return GLib.SOURCE_REMOVE; }));
@@ -94,9 +95,18 @@ export default class Demo extends Extension {
         await wait(600);
         ext._toggle.menu.open();
         await wait(3800);
+        this.overlay.hide();
+        await wait(100);
+        const file = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_DEMO_ROOT')}/docs/submission/screenshot.png`);
+        const stream = file.replace(null, false, Gio.FileCreateFlags.NONE, null);
+        await new Promise((resolve, reject) => new Shell.Screenshot().screenshot(false, stream, (source, result) => {
+            try { source.screenshot_finish(result); resolve(); } catch (e) { reject(e); }
+        }));
+        stream.close(null);
+        this.overlay.show();
         ext._toggle.menu.close();
         Main.panel.statusArea.quickSettings.menu.close();
-        this.caption('NexTile', 'GNOME 48–51  ·  Five languages  ·  Open source');
+        this.caption('NexTile', 'GNOME 46–51  ·  Eleven languages  ·  Open source');
         await wait(2800);
         recorder.send_signal(2);
         await new Promise((resolve, reject) => recorder.wait_async(null, (p, result) => {

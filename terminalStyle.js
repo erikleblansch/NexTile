@@ -43,7 +43,14 @@ export class TerminalStyle {
     apply(enabled) {
         const [original, etag] = this._read();
         const [, bytes] = this._cssFile.load_contents(null);
-        const updated = mergeTerminalStyle(original, new TextDecoder().decode(bytes), enabled);
+        let css = new TextDecoder().decode(bytes);
+        // Ubuntu's Terminal transparency patch ignores the normal CSS alpha
+        // and reads this GTK style property instead. Emit it only when that
+        // patch's schema key exists, so upstream Terminal sees no unknown CSS.
+        const profile = Gio.SettingsSchemaSource.get_default()?.lookup('org.gnome.Terminal.Legacy.Profile', true);
+        if (profile?.has_key('use-theme-transparency'))
+            css += '\nterminal-window vte-terminal { -TerminalScreen-background-darkness: 0.5; }\n';
+        const updated = mergeTerminalStyle(original, css, enabled);
         if (updated === original)
             return false;
         const parent = this._file.get_parent();

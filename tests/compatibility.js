@@ -40,6 +40,6 @@ const loop = new GLib.MainLoop(null, false);
         await updateSearch({updateSearch: () => Promise.reject(new Error('cancelled'))}, [], [], () => { throw new Error('must not complete'); });
     } catch (error) { rejected = error.message === 'cancelled'; }
     assert(rejected, 'Search failures propagate to cancellation handling');
-    print('PASS: Mutter 48 and 49–51 maximize APIs; callback/Promise search completion');
+    print('PASS: Mutter 46–48 and 49–51 maximize APIs; callback/Promise search completion');
 })().catch(error => { printerr(error.stack); imports.system.exit(1); }).finally(() => loop.quit());
 loop.run();

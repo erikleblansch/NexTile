@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr "Project-Id-Version: NexTile 0.7.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 12:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: ja\nLanguage: ja\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Type to search"
+msgstr "入力して検索"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Room for every window"
+msgstr "すべてのウィンドウにスペースを"
+
+msgid "Window gaps"
+msgstr "ウィンドウ間の余白"
+
+msgid "Automatic"
+msgstr "自動"
+
+msgid "Side by side"
+msgstr "左右に並べる"
+
+msgid "Stacked"
+msgstr "上下に並べる"
+
+msgid "Split direction"
+msgstr "分割方向"
+
+msgid "Float active window"
+msgstr "アクティブなウィンドウをフローティングにする"
+
+msgid "Reflow windows"
+msgstr "ウィンドウを再配置"
+
+msgid "Restore windows when tiling is off"
+msgstr "タイル表示を無効にしたときにウィンドウを元に戻す"
+
+msgid "Transparent top bar"
+msgstr "透明なトップバー"
+
+msgid "Super opens search"
+msgstr "Super キーで検索を開く"
+
+msgid "Transparent terminal"
+msgstr "透明な端末"
+
+msgid "Off"
+msgstr "オフ"
+
+#, javascript-format
+msgid "Window gaps · %d px"
+msgstr "ウィンドウ間の余白 · %d px"
+
+msgid "Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile."
+msgstr "変更を適用するには、GNOME 端末のすべてのウィンドウを閉じてから端末を開き直してください。端末のプロファイルで「システムのテーマ色を使用する」を有効にしてください。"
+
+msgid "Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact."
+msgstr "端末のスタイルを更新できませんでした。GTK の設定に書き込めることと、NexTile の CSS マーカーが壊れていないことを確認してください。"
+
+msgid "Searching…"
+msgstr "検索中…"
+
+msgid "No results"
+msgstr "検索結果がありません"
+
+msgid "Workspaces"
+msgstr "ワークスペース"
+
+#, javascript-format
+msgid "Workspace %d"
+msgstr "ワークスペース %d"
+
+#, javascript-format
+msgid "Workspace %d, active — open overview"
+msgstr "ワークスペース %d、使用中 — アクティビティを開く"
+
+#, javascript-format
+msgid "Switch to workspace %d"
+msgstr "ワークスペース %d に切り替える"
+
+msgid "Drag tile boundary"
+msgstr "タイルの境界をドラッグ"

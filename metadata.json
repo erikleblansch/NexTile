@@ -1,15 +1,16 @@
 {
   "uuid": "nextile@erikleblansch.github.io",
   "name": "NexTile",
-  "description": "Automatic largest-tile splitting, an adaptive transparent panel, centered numbered workspaces and in-panel Super-key search with native GNOME results. Controls live in Quick Settings.",
+  "description": "Automatic largest-tile splitting, an adaptive transparent panel, centered numbered workspaces and in-panel Super-key search with native GNOME results. Controls live in Quick Settings.\n\nOptional terminal transparency changes the GNOME Terminal GTK 3 style. The adaptive panel samples a narrow screen strip in memory; no images are saved or sent.\n\nActivating a search result that supplies text (such as a character) copies that text to the clipboard. NexTile never reads the clipboard.",
   "shell-version": [
+    "46",
+    "47",
     "48",
     "49",
     "50",
     "51"
   ],
-  "version": 7,
-  "version-name": "0.6.0",
+  "version-name": "0.7.0",
   "url": "https://github.com/erikleblansch/NexTile",
   "settings-schema": "org.gnome.shell.extensions.nextile",
   "gettext-domain": "nextile"

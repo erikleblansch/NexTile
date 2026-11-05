@@ -1,0 +1,129 @@
+PASS: Extension loads and tiler starts
+PASS: Native Quick Settings toggle with menu
+PASS: Warning icon precedes the floating-window switch label
+PASS: Panel is fully transparent
+PASS: Clock and calendar button moved to the left
+PASS: Native dots hidden while numbered ribbon is present
+PASS: White background automatically selects black panel text
+PASS: Black background automatically selects white panel text
+PASS: Compositor background updates trigger contrast without a settings change
+PASS: Light and dark wallpaper regions get independent readable text colors
+PASS: Stable desktop has no recurring contrast sampling or pending timers
+PASS: Each workspace circle adapts to its own background region
+PASS: Workspace count and numbering follow GNOME
+PASS: First active pill is at the physical screen center
+PASS: Clicking number switches workspace
+PASS: Workspace motion includes intermediate animation frames
+PASS: New active pill settles exactly at center
+PASS: Active workspace is a large pill and inactive workspace a numbered circle
+PASS: Last active pill remains centered with clipped overflow
+PASS: Clicking active workspace opens Activities overview
+PASS: Moved clock still opens calendar
+PASS: Panel option restores original layout independently of tiling
+PASS: Panel customization can be enabled again
+PASS: Ribbon follows removal of workspaces
+PASS: Real Super key opens compact search without Activities
+PASS: Search immediately owns keyboard focus and one modal grab
+PASS: Empty search shows only the search bar
+PASS: Search surface expands from pill to final bar width
+PASS: Search expansion includes intermediate animation frames
+PASS: Search replaces the active pill inside the top bar
+PASS: Active pill is replaced and neighboring workspace circles move aside
+PASS: Search overlay has no desktop backdrop
+PASS: Typing after Super enters the query directly
+PASS: Native GNOME app search finds installed fixture applications
+PASS: Native provider layout shows five results and the remaining count
+PASS: Provider category cards retain a half-transparent background
+PASS: Overview provider widgets remain untouched
+PASS: Down selects next application
+PASS: Up selects previous application
+PASS: Search neighbors slide forward without reversing direction between animation frames
+PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x5558019edb40 ClutterText ("nextile search test")], entryFocus=true)
+PASS: Workspace scrolling keeps search centered and moves the other circles around it
+PASS: Search neighbors also slide backward without bouncing
+PASS: Enter launches application and closes search without showing Activities
+PASS: Application launches on selected workspace and modal grab is released
+PASS: Native provider result activates and closes search without opening Overview
+PASS: Provider header opens full provider search without opening Overview
+PASS: Escape closes search and releases focus
+PASS: Second Super closes compact search
+PASS: Clicking outside search closes it and releases the grab
+PASS: New query replaces old results and shows empty-result feedback
+PASS: Closing cancels queued searches and prevents results returning
+PASS: Closing restores original workspace spacing
+PASS: Delayed application provider has an in-flight search
+PASS: Enter during an in-flight search launches its result
+PASS: Search setting disables cleanly even while the bar is open
+PASS: Disabling during an in-flight search discards late results
+PASS: Disabling compact search restores native Super overview
+PASS: Compact search can be re-enabled
+PASS: Real GNOME Terminal opens with the isolated transparency configuration
+PASS: Terminal background blends at 50 percent with the desktop (21,63,67)
+PASS: Terminal text is not faded by whole-window opacity
+PASS: GTK window NexTile A mapped
+PASS: First window fills work area with outer gap
+PASS: GTK window NexTile B mapped
+PASS: Second window halves largest tile
+PASS: GTK window NexTile C mapped
+PASS: Third window splits longest side
+PASS: Unrelated tile remains stable
+PASS: Closing restores sibling space
+PASS: Minimize releases tile
+PASS: Unminimize rejoins tiling
+PASS: Fullscreen is respected
+PASS: Fullscreen exit rejoins tiling
+PASS: Floating releases tile
+PASS: Floating off rejoins tiling
+PASS: Gap changes apply immediately
+PASS: Split orientation and reflow work
+PASS: Manual maximize is respected
+PASS: Manual unmaximize rejoins tiling
+PASS: GTK window NexTile maximized mapped
+PASS: New maximized window opens normally and tiles without a mouse move
+PASS: GTK window NexTile late-maximized mapped
+PASS: New late-maximized window opens normally and tiles without a mouse move
+PASS: GTK window NexTile late-restore mapped
+PASS: New late-restore window opens normally and tiles without a mouse move
+PASS: Startup normalization has ended before deliberate maximization
+PASS: User can still maximize a window after startup
+PASS: Unmaximize with a delayed client resize retiles without mouse interaction
+PASS: Restoring a previously maximized, minimized window immediately retiles
+PASS: GTK window NexTile minimum size mapped
+PASS: Client minimum size floats incompatible window
+PASS: Second workspace is available
+PASS: Moving to another workspace releases source tile
+PASS: Destination workspace has independent layout
+PASS: Returning to workspace tiles again
+PASS: Moving monitors releases source tile
+PASS: Second monitor has independent work area and layout
+PASS: Returning to monitor tiles again
+PASS: GTK window NexTile Insert mapped
+PASS: Dragging the title bar starts a real Mutter window move
+PASS: Source siblings fill the space released by the dragged window
+PASS: Target is split along its longest direction instead of swapping positions
+PASS: Shared tile boundary has a draggable handle
+PASS: Real mouse press grabs the shared boundary
+PASS: Dragging the boundary resizes both adjacent windows live
+PASS: Boundary release persists the ratio and releases the input grab
+PASS: Escape restores the previous split ratio
+PASS: Undirected keyboard resize does not accidentally select north/west borders
+PASS: Native window-edge resizing updates and retains the tile split
+PASS: Zero-gap layouts retain a usable boundary hit target
+PASS: Horizontal boundary drags resize the upper and lower tile
+PASS: Boundary owns a grab before disabling tiling
+PASS: Disabling during a boundary drag removes handles and releases the grab
+PASS: Constrained app fits before dragging the boundary
+PASS: Minimum-size test grabs the intended boundary
+PASS: Client minimum size restores the previous ratio without floating the app
+PASS: Quick Settings dropdown opens with gap choices
+PASS: Dropdown retains the active app window while Shell has focus
+PASS: Floating action works from the open dropdown
+PASS: Dropdown returns active window to tiling
+PASS: Toggle off disconnects signals and removes sources
+PASS: Toggle off restores original window size
+PASS: Toggle on retiles existing windows
+PASS: Extension disable destroys UI and all owned resources
+PASS: Disable clears startup tracking and expected window geometry
+PASS: Disable restores native panel and releases panel resources
+PASS: Disable removes search modal, signals and restores Super handler
+PASS: Extension can be enabled again

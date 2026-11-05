@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr "Project-Id-Version: NexTile 0.7.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 12:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: it\nLanguage: it\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Type to search"
+msgstr "Digita per cercare"
+
+msgid "Search"
+msgstr "Cerca"
+
+msgid "Room for every window"
+msgstr "Spazio per ogni finestra"
+
+msgid "Window gaps"
+msgstr "Spazi tra le finestre"
+
+msgid "Automatic"
+msgstr "Automatico"
+
+msgid "Side by side"
+msgstr "Affiancate"
+
+msgid "Stacked"
+msgstr "Una sopra l’altra"
+
+msgid "Split direction"
+msgstr "Direzione di divisione"
+
+msgid "Float active window"
+msgstr "Rendi mobile la finestra attiva"
+
+msgid "Reflow windows"
+msgstr "Ridisponi le finestre"
+
+msgid "Restore windows when tiling is off"
+msgstr "Ripristina le finestre quando la disposizione a mosaico è disattivata"
+
+msgid "Transparent top bar"
+msgstr "Barra superiore trasparente"
+
+msgid "Super opens search"
+msgstr "Super apre la ricerca"
+
+msgid "Transparent terminal"
+msgstr "Terminale trasparente"
+
+msgid "Off"
+msgstr "Disattivato"
+
+#, javascript-format
+msgid "Window gaps · %d px"
+msgstr "Spazi tra le finestre · %d px"
+
+msgid "Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile."
+msgstr "Chiudi tutte le finestre del Terminale GNOME e riapri il Terminale per applicare le modifiche. Abilita «Usa i colori del tema di sistema» nel profilo del Terminale."
+
+msgid "Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact."
+msgstr "Impossibile aggiornare lo stile del terminale. Verifica che la configurazione GTK sia scrivibile e che i marcatori CSS di NexTile siano integri."
+
+msgid "Searching…"
+msgstr "Ricerca in corso…"
+
+msgid "No results"
+msgstr "Nessun risultato"
+
+msgid "Workspaces"
+msgstr "Spazi di lavoro"
+
+#, javascript-format
+msgid "Workspace %d"
+msgstr "Spazio di lavoro %d"
+
+#, javascript-format
+msgid "Workspace %d, active — open overview"
+msgstr "Spazio di lavoro %d, attivo — apri la panoramica"
+
+#, javascript-format
+msgid "Switch to workspace %d"
+msgstr "Passa allo spazio di lavoro %d"
+
+msgid "Drag tile boundary"
+msgstr "Trascina il bordo del riquadro"

@@ -1,6 +1,6 @@
 # NexTile translations. GPL-3.0-or-later.
 msgid ""
-msgstr "Project-Id-Version: NexTile 0.6.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 00:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: es\nLanguage: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
+msgstr "Project-Id-Version: NexTile 0.7.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 00:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: es\nLanguage: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Room for every window"
 msgstr "Espacio para cada ventana"

@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
+.nextile-float-warning { color: #e5a50a; }
+
 #panel.nextile-panel {
     background-color: transparent;
     background-gradient-direction: none;

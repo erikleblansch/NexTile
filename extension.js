@@ -2,6 +2,7 @@
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
+import St from 'gi://St';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -34,6 +35,10 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         });
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._float = new PopupMenu.PopupSwitchMenuItem(_('Float active window'), false);
+        this._float.insert_child_below(new St.Icon({
+            icon_name: 'dialog-warning-symbolic',
+            style_class: 'popup-menu-icon nextile-float-warning',
+        }), this._float.label);
         this._float.connect('toggled', () => tiler.toggleFloating(this._focus));
         this.menu.addMenuItem(this._float);
         this._retile = this.menu.addAction(_('Reflow windows'), () => tiler.retile());

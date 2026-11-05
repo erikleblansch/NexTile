@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(['msgfmt', '-o', str(mo), '-'], input=filled, check=True)
     with mo.open('rb') as source:
         keys = set(gettext.GNUTranslations(source)._catalog) - {''}
-    for lang in ('nl', 'de', 'fr', 'es'):
+    for lang in ('nl', 'de', 'fr', 'es', 'pt', 'it', 'pl', 'ja', 'zh', 'uk'):
         t = gettext.translation('nextile', ROOT / 'locale', languages=[lang])
         assert set(t._catalog) - {''} == keys, f'{lang}: missing {keys-set(t._catalog)}, stale {set(t._catalog)-keys-{""}}'
         for key in keys:
@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory() as tmp:
         # Regional locales must use the shipped base language.
         regional = gettext.translation('nextile', ROOT / 'locale', languages=[lang + '_XX'])
         assert regional.gettext('Search') == t.gettext('Search')
-    for lang in ('en', 'ja', 'C'):
+    for lang in ('en', 'ko', 'C'):
         t = gettext.translation('nextile', ROOT / 'locale', languages=[lang], fallback=True)
         assert all(t.gettext(key) == key for key in keys), lang
-    print(f'PASS: {len(keys)} strings, four complete catalogs, regional and English fallbacks')
+    print(f'PASS: {len(keys)} strings, ten complete catalogs, regional and English fallbacks')

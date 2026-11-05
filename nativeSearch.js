@@ -17,10 +17,13 @@ export const NativeSearch = GObject.registerClass({
     Signals: {'terms-changed': {}, 'updated': {}, 'activated': {}},
 }, class NativeSearch extends St.BoxLayout {
     _init() {
+        // St gained orientation in 48 and removed vertical in 51.
+        const vertical = 'orientation' in St.BoxLayout.prototype
+            ? {orientation: Clutter.Orientation.VERTICAL} : {vertical: true};
         super._init({name: 'searchResults', style_class: 'nextile-native-results',
-            orientation: Clutter.Orientation.VERTICAL});
+            ...vertical});
         this._content = new St.BoxLayout({name: 'searchResultsContent',
-            orientation: Clutter.Orientation.VERTICAL, x_expand: true});
+            ...vertical, x_expand: true});
         this._scrollView = new St.ScrollView({style_class: 'search-display vfade',
             overlay_scrollbars: true, x_expand: true, y_expand: true,
             hscrollbar_policy: St.PolicyType.NEVER, child: this._content});

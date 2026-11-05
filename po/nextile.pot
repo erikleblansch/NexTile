@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: NexTile 0.6.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 00:25+0100\n"
+"Project-Id-Version: NexTile 0.7.0\n"
+"Report-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\n"
+"POT-Creation-Date: 2026-11-05 14:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,80 +25,80 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: extension.js:21
+#: extension.js:22
 msgid "Room for every window"
 msgstr ""
 
-#: extension.js:22
+#: extension.js:23
 msgid "Window gaps"
 msgstr ""
 
-#: extension.js:28 extension.js:71
+#: extension.js:29 extension.js:76
 msgid "Automatic"
 msgstr ""
 
-#: extension.js:28
+#: extension.js:29
 msgid "Side by side"
 msgstr ""
 
-#: extension.js:28
+#: extension.js:29
 msgid "Stacked"
 msgstr ""
 
-#: extension.js:29
+#: extension.js:30
 msgid "Split direction"
 msgstr ""
 
-#: extension.js:36
+#: extension.js:37
 msgid "Float active window"
 msgstr ""
 
-#: extension.js:39
+#: extension.js:44
 msgid "Reflow windows"
 msgstr ""
 
-#: extension.js:40
+#: extension.js:45
 msgid "Restore windows when tiling is off"
 msgstr ""
 
-#: extension.js:44
+#: extension.js:49
 msgid "Transparent top bar"
 msgstr ""
 
-#: extension.js:47
+#: extension.js:52
 msgid "Super opens search"
 msgstr ""
 
-#: extension.js:50
+#: extension.js:55
 msgid "Transparent terminal"
 msgstr ""
 
-#: extension.js:71
+#: extension.js:76
 msgid "Off"
 msgstr ""
 
-#: extension.js:72
+#: extension.js:77
 #, javascript-format
 msgid "Window gaps · %d px"
 msgstr ""
 
-#: extension.js:167
+#: extension.js:172
 msgid ""
 "Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use "
 "colors from system theme” in your Terminal profile."
 msgstr ""
 
-#: extension.js:176
+#: extension.js:181
 msgid ""
 "Could not update the terminal style. Check that your GTK configuration is "
 "writable and the NexTile CSS markers are intact."
 msgstr ""
 
-#: nativeSearch.js:84 nativeSearch.js:221
+#: nativeSearch.js:87 nativeSearch.js:224
 msgid "Searching…"
 msgstr ""
 
-#: nativeSearch.js:221
+#: nativeSearch.js:224
 msgid "No results"
 msgstr ""
 

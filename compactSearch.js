@@ -204,7 +204,7 @@ export class CompactSearch {
         const now = GLib.get_monotonic_time();
         if (now - this._lastScroll < 180000)
             return Clutter.EVENT_STOP;
-        let step = 0;
+        let step;
         switch (event.get_scroll_direction()) {
         case Clutter.ScrollDirection.UP:
         case Clutter.ScrollDirection.LEFT: step = -1; break;

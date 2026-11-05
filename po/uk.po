@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr "Project-Id-Version: NexTile 0.7.0\nReport-Msgid-Bugs-To: https://github.com/erikleblansch/NexTile/issues\nPO-Revision-Date: 2026-11-05 12:00+0100\nLast-Translator: NexTile contributors\nLanguage-Team: uk\nLanguage: uk\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+msgid "Type to search"
+msgstr "Введіть текст для пошуку"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "Room for every window"
+msgstr "Місце для кожного вікна"
+
+msgid "Window gaps"
+msgstr "Проміжки між вікнами"
+
+msgid "Automatic"
+msgstr "Автоматично"
+
+msgid "Side by side"
+msgstr "Поруч"
+
+msgid "Stacked"
+msgstr "Одне над одним"
+
+msgid "Split direction"
+msgstr "Напрямок поділу"
+
+msgid "Float active window"
+msgstr "Зробити активне вікно плаваючим"
+
+msgid "Reflow windows"
+msgstr "Перевпорядкувати вікна"
+
+msgid "Restore windows when tiling is off"
+msgstr "Відновлювати вікна після вимкнення мозаїки"
+
+msgid "Transparent top bar"
+msgstr "Прозора верхня панель"
+
+msgid "Super opens search"
+msgstr "Super відкриває пошук"
+
+msgid "Transparent terminal"
+msgstr "Прозорий термінал"
+
+msgid "Off"
+msgstr "Вимкнено"
+
+#, javascript-format
+msgid "Window gaps · %d px"
+msgstr "Проміжки між вікнами · %d пкс"
+
+msgid "Close all GNOME Terminal windows and reopen Terminal to apply. Enable “Use colors from system theme” in your Terminal profile."
+msgstr "Закрийте всі вікна Термінала GNOME й відкрийте Термінал знову, щоб застосувати зміни. Увімкніть «Використовувати кольори системної теми» у профілі Термінала."
+
+msgid "Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact."
+msgstr "Не вдалося оновити стиль термінала. Перевірте, чи доступні для запису налаштування GTK і чи не пошкоджено маркери CSS NexTile."
+
+msgid "Searching…"
+msgstr "Пошук…"
+
+msgid "No results"
+msgstr "Немає результатів"
+
+msgid "Workspaces"
+msgstr "Робочі простори"
+
+#, javascript-format
+msgid "Workspace %d"
+msgstr "Робочий простір %d"
+
+#, javascript-format
+msgid "Workspace %d, active — open overview"
+msgstr "Робочий простір %d, активний — відкрити огляд"
+
+#, javascript-format
+msgid "Switch to workspace %d"
+msgstr "Перейти до робочого простору %d"
+
+msgid "Drag tile boundary"
+msgstr "Перетягніть межу плитки"

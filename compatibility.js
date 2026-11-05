@@ -19,7 +19,7 @@ export function unmaximize(window, flags) {
         window.unmaximize(flags);
 }
 
-// GNOME 48/49 use a callback (the grid returns void); 50/51 return a
+// GNOME 46–49 use a callback (the grid returns void); 50/51 return a
 // Promise. Some distributions backport this change, so inspect the result.
 export async function updateSearch(display, ids, terms, complete) {
     let completed = false;

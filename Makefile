@@ -14,6 +14,7 @@ test: translations
 
 pack: test
 	python3 tools/pack.py
+	python3 tests/package.py
 
 install: pack
 	gnome-extensions install --force dist/$(UUID).shell-extension.zip

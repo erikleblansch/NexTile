@@ -53,6 +53,10 @@ export default class TestDriver extends Extension {
         };
         assert(ext?._tiler?._running, 'Extension loads and tiler starts');
         assert(ext._toggle.title === 'NexTile' && !!ext._toggle.menu, 'Native Quick Settings toggle with menu');
+        const floatChildren = ext._toggle._float.get_children();
+        const warning = floatChildren.find(child => child.icon_name === 'dialog-warning-symbolic');
+        assert(warning && floatChildren.indexOf(warning) < floatChildren.indexOf(ext._toggle._float.label),
+            'Warning icon precedes the floating-window switch label');
         if (GLib.getenv('NEXTILE_TEST_ONLY') === 'settings') {
             await this._settingsTests(ext, assert);
             this._finish(log.join('\n'));
@@ -68,14 +72,14 @@ export default class TestDriver extends Extension {
             background.set_string('picture-options', 'none');
             background.set_string('primary-color', '#0b5e63');
             await delay(800);
-            await this._terminalTests(assert);
+            await this._terminalTests(ext, assert);
             this._finish(log.join('\n'));
             return;
         }
         if (GLib.getenv('NEXTILE_TEST_ONLY') !== 'tiling') {
             await this._panelTests(ext, assert);
             await this._searchTests(ext, assert);
-            await this._terminalTests(assert);
+            await this._terminalTests(ext, assert);
         }
         const spawn = async (name, mode = null) => {
             Gio.Subprocess.new(['python3', GLib.getenv('NEXTILE_TEST_FIXTURE'), name,
@@ -151,10 +155,19 @@ export default class TestDriver extends Extension {
                     floating: ext._tiler.isFloating(window), excluded: ext._tiler._maximized.has(window),
                     opening: ext._tiler._opening.get(window), resize: window.allows_resize(), move: window.allows_move()})}`));
             if (mode === 'late-restore') {
-                await delay(500);
+                // Slow software-rendered sessions can map late within spawn's
+                // delay. Test a deliberate maximize after the actual startup
+                // deadline, not a fixed interval after launching the process.
+                const deadline = ext._tiler._opening.get(window) ?? 0;
+                await delay(Math.max(500, (deadline - GLib.get_monotonic_time()) / 1000 + 100));
+                assert(GLib.get_monotonic_time() > deadline,
+                    'Startup normalization has ended before deliberate maximization');
                 maximize(window, Meta.MaximizeFlags.BOTH);
                 await delay(600);
-                assert(!!maximizeFlags(window), 'User can still maximize a window after startup');
+                assert(!!maximizeFlags(window), 'User can still maximize a window after startup' +
+                    (maximizeFlags(window) ? '' : ` ${JSON.stringify({deadline,
+                        now: GLib.get_monotonic_time(), opening: ext._tiler._opening.get(window),
+                        excluded: ext._tiler._maximized.has(window), floating: ext._tiler.isFloating(window)})}`));
                 Gio.Subprocess.new(['kill', '-USR1', String(window.get_pid())], Gio.SubprocessFlags.NONE);
                 await delay(850);
                 assert(isTiled(), 'Unmaximize with a delayed client resize retiles without mouse interaction');
@@ -403,7 +416,10 @@ export default class TestDriver extends Extension {
         await delay(400);
     }
 
-    async _terminalTests(assert) {
+    async _terminalTests(ext, assert) {
+        // Exercise the installed preference, including distribution-specific
+        // GTK style properties, before the terminal process reads its CSS.
+        ext._settings.set_boolean('terminal-transparent', true);
         Gio.Subprocess.new(['gnome-terminal', '--wait', '--hide-menubar', '--title=NexTile Transparency',
             '--', 'python3', GLib.getenv('NEXTILE_TERMINAL_FIXTURE')], Gio.SubprocessFlags.NONE);
         await delay(1800);
@@ -531,15 +547,19 @@ export default class TestDriver extends Extension {
             monitor.y + Main.panel.height + 28);
         const circle = ribbon._buttons[2];
         const samples = [circle.get_transformed_position()[0]];
+        const motion = [];
+        const motionStart = GLib.get_monotonic_time();
         pointer.notify_discrete_scroll(GLib.get_monotonic_time(), Clutter.ScrollDirection.DOWN,
             Clutter.ScrollSource.WHEEL);
         for (let frame = 0; frame < 44; frame++) {
             await delay(16);
             samples.push(circle.get_transformed_position()[0]);
+            motion.push({ms: Math.round((GLib.get_monotonic_time() - motionStart) / 1000),
+                value: ribbon._position.value, duration: ribbon._position.get_transition('value')?.get_duration()});
         }
         const forwardSmooth = new Set(samples).size > 3 && samples.every((x, i) => i === 0 || x <= samples[i - 1] + 1);
         assert(forwardSmooth, 'Search neighbors slide forward without reversing direction between animation frames' +
-            (forwardSmooth ? '' : ` (${samples.join(',')})`));
+            (forwardSmooth ? '' : ` (${samples.join(',')}) ${JSON.stringify(motion)}`));
         assert(global.workspace_manager.get_active_workspace_index() === 1 && search._open &&
             search._entry.get_text() === 'nextile search test' && search._entry.clutter_text.has_key_focus(),
         'Real mouse wheel changes workspace while retaining search and focus' +
@@ -662,6 +682,12 @@ export default class TestDriver extends Extension {
             de: ['Transparentes Terminal', 'Suchbegriff eingeben', 'Arbeitsfläche 1'],
             fr: ['Terminal transparent', 'Saisissez votre recherche', 'Espace de travail 1'],
             es: ['Terminal transparente', 'Escribe para buscar', 'Espacio de trabajo 1'],
+            pt: ['Terminal transparente', 'Escreva para pesquisar', 'Área de trabalho 1'],
+            it: ['Terminale trasparente', 'Digita per cercare', 'Spazio di lavoro 1'],
+            pl: ['Przezroczysty terminal', 'Wpisz, aby wyszukać', 'Obszar roboczy 1'],
+            ja: ['透明な端末', '入力して検索', 'ワークスペース 1'],
+            zh: ['透明终端', '输入以搜索', '工作区 1'],
+            uk: ['Прозорий термінал', 'Введіть текст для пошуку', 'Робочий простір 1'],
         }[language];
         assert(ext._toggle._terminalSwitch.label.text === labels[0], `Quick Settings follows ${language} locale`);
         assert(ext._search._entry.hint_text === labels[1], `Search follows ${language} locale`);
@@ -704,7 +730,7 @@ export default class TestDriver extends Extension {
         background.set_string('primary-color', '#000000');
         await delay(1400);
         assert(appearance._inks.every(ink => ink === 'light'), 'Black background automatically selects white panel text');
-        const [, white] = Cogl.Color.from_string('#ffffff');
+        const [, white] = (Cogl.Color?.from_string ? Cogl.Color : Clutter.Color).from_string('#ffffff');
         const compositorBackground = Main.layoutManager._bgManagers[Main.layoutManager.primaryIndex]
             .backgroundActor.content.background;
         let backgroundChanges = 0;
