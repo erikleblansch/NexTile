@@ -9,6 +9,9 @@ fi
 # No host system bus, display, home directory or GPU is shared.
 dbus-daemon --system --fork
 cp -a /source /tmp/nextile-source
+# GitHub's checkout UID differs from the isolated runtime user's UID. The
+# native-install harness now builds its ZIP, so its private copy must be writable.
+chown -R 1000:1000 /tmp/nextile-source
 python3 /tmp/nextile-source/tools/translations.py
 gnome-shell --version
 result=0
