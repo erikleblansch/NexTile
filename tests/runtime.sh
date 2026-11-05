@@ -107,6 +107,6 @@ if grep -q '^FAIL:' "$NEXTILE_TEST_RESULT"; then
     tail -80 "$test_dir/runtime/shell.log"
     exit 1
 fi
-if grep -E 'JS ERROR|Gjs-CRITICAL|Theme parsing error|NexTile (search|contrast):' "$test_dir/runtime/shell.log"; then
+if grep -B 2 -A 18 -E 'JS ERROR|Gjs-CRITICAL|Theme parsing error|NexTile (search|contrast):' "$test_dir/runtime/shell.log"; then
     exit 1
 fi

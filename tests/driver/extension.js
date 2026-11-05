@@ -756,6 +756,7 @@ export default class TestDriver extends Extension {
     }
 
     async _launchTests(ext, assert) {
+        new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).set_boolean('enable-animations', true);
         const settings = ext._settings;
         const windows = kind => global.get_window_actors().map(actor => actor.meta_window)
             .filter(window => window.title?.startsWith(`NexTile Launch ${kind} `));
