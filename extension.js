@@ -124,7 +124,9 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this._menuOpenId = 0;
         // Quick Settings parents the dropdown in its own overlay. Destroying
         // this button alone leaves that menu, its signals and modal grab alive.
-        this.menu.close(PopupAnimation.NONE);
+        // GNOME 51 moved open/close into PopupMenuBase and changed their
+        // argument to an options object; older versions use an animation enum.
+        this.menu.close(PopupMenu.PopupMenuBase.prototype.close ? {animate: false} : PopupAnimation.NONE);
         this.menu.destroy();
         this.menu = null;
     }

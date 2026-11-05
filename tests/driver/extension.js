@@ -8,6 +8,7 @@ import Clutter from 'gi://Clutter';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {ExtensionState} from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
 // Test the same version adapters used by the installed extension.
 import {maximizeFlags, maximize, unmaximize} from '../nextile@erikleblansch.github.io/compatibility.js';
@@ -16,6 +17,28 @@ const delay = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAUL
     resolve();
     return GLib.SOURCE_REMOVE;
 }));
+const setExtensionEnabled = async enabled => {
+    const uuid = 'nextile@erikleblansch.github.io';
+    const manager = Main.extensionManager;
+    const target = enabled
+        ? (ExtensionState.ACTIVE ?? ExtensionState.ENABLED)
+        : (ExtensionState.INACTIVE ?? ExtensionState.DISABLED);
+    // These methods return a boolean, not completion of the state change.
+    // GNOME 51 queues settings changes behind its extension-manager mutex.
+    if (enabled)
+        manager.enableExtension(uuid);
+    else
+        manager.disableExtension(uuid);
+    for (let attempt = 0; attempt < 100; attempt++) {
+        const extension = manager.lookup(uuid);
+        if (extension.state === target)
+            return;
+        if (extension.state === ExtensionState.ERROR)
+            throw new Error(`Extension state change failed: ${extension.error}`);
+        await delay(20);
+    }
+    throw new Error(`Extension did not reach state ${target}`);
+};
 const rect = window => {
     const r = window.get_frame_rect();
     return {x: r.x, y: r.y, width: r.width, height: r.height};
@@ -317,7 +340,7 @@ export default class TestDriver extends Extension {
         Main.panel.statusArea.quickSettings.menu.open();
         menu.open();
         await delay(100);
-        await Main.extensionManager.disableExtension('nextile@erikleblansch.github.io');
+        await setExtensionEnabled(false);
         assert(menuDestroyed && menuParent.get_n_children() === menuCount - 1,
             'Disable destroys the separately parented Quick Settings menu');
         assert(!menu.isOpen && !Main.panel.statusArea.quickSettings.menu._activeMenu,
@@ -337,7 +360,7 @@ export default class TestDriver extends Extension {
             Main.panel.statusArea.activities.container.visible, 'Disable restores native panel and releases panel resources');
         assert(search._destroyed && !search._results._timeout && !search._grab && !search._nativeHandler &&
             search._signals.length === 0, 'Disable removes search modal, signals and restores Super handler');
-        await Main.extensionManager.enableExtension('nextile@erikleblansch.github.io');
+        await setExtensionEnabled(true);
         await ext._terminalTask;
         ext._settings.set_boolean('terminal-transparent', false);
         await ext._terminalTask;

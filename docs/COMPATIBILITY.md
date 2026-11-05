@@ -20,7 +20,7 @@ See [validation](VALIDATION.md) for results and limits. GNOME 50 and 51 no longe
 - **Mutter 49:** flag-specific maximization uses `get_maximize_flags()`, `set_maximize_flags()` and `set_unmaximize_flags()`. On 46–48 the older flag-taking methods are retained. Partial maximization flags survive restoration.
 - **GNOME 50:** native search widgets return a Promise instead of invoking a completion callback. NexTile handles both and completes each request once.
 - **Mutter 50:** cursor shapes belong to Clutter actors; the old display cursor setter is retained only on earlier versions. Modal grabs no longer expose `get_seat_state()` after X11 support was removed.
-- **GNOME 46/47 and 51:** St uses `vertical` on 46/47. `orientation` was added in 48 and `vertical` removed in 51. NexTile checks the widget property before construction. Its menu calls use defaults supported by all six versions. Input-event signals remain supported; they are deprecated upstream but not removed in 51.
+- **GNOME 46/47 and 51:** St uses `vertical` on 46/47. `orientation` was added in 48 and `vertical` removed in 51. NexTile checks the widget property before construction. GNOME 51 moved menu open/close into `PopupMenuBase` and accepts an options object; teardown detects that API and closes with `{animate: false}`, retaining `PopupAnimation.NONE` on older versions. Input-event signals remain supported; they are deprecated upstream but not removed in 51.
 - **Workspace motion:** while search is open, a single local animation follows the selected workspace. Intermediate values from Shell cannot pull the expanded ribbon back toward the previous workspace.
 - **Background lifecycle:** the panel reconnects to background managers after Shell startup as well as after monitor changes.
 
