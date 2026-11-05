@@ -10,7 +10,7 @@
     "50",
     "51"
   ],
-  "version-name": "0.7.2-dev",
+  "version-name": "0.7.2",
   "url": "https://github.com/erikleblansch/NexTile",
   "settings-schema": "org.gnome.shell.extensions.nextile",
   "gettext-domain": "nextile"

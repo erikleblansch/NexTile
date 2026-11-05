@@ -1,7 +1,6 @@
-# New-window launch preview
+# Always open a new window
 
-Branch: `feature/always-new-window`. Preview version: `0.7.2-dev`.
-The `0.7.1` release awaiting GNOME review is unchanged. This branch has not been merged into `main` or submitted to extensions.gnome.org.
+Available in **NexTile 0.7.2**, distributed through [GitHub Releases](https://github.com/erikleblansch/NexTile/releases/tag/v0.7.2). The feature was developed on `feature/always-new-window` and merged into `main`.
 
 ## Behavior
 
@@ -39,13 +38,15 @@ The focused launch test also passed all 18 assertions on GNOME 48.7 Wayland. The
 
 `make pack` and ESLint passed. The package contains 26 files and complete compiled catalogs for all ten translations, with English fallback. Shexli 0.2.1 reports the same four [documented findings](SHEXLI.md) as the submitted version; this change adds no findings and does not imply GNOME approval.
 
-Preview ZIP SHA-256: `87f225a5f92f2f46b50dcb687db52fdacb02cb19c4c5ba2ec1dc4796f00ba106`.
+Historical `0.7.2-dev` ZIP SHA-256: `87f225a5f92f2f46b50dcb687db52fdacb02cb19c4c5ba2ec1dc4796f00ba106`.
 
-## Build this branch
+## Install or build
+
+Install the release ZIP using the [README instructions](../README.md#install), or build the tagged release in a clean checkout:
 
 ```sh
-git switch feature/always-new-window
+git checkout v0.7.2
 make install
 ```
 
-Log out and back in to load the preview's JavaScript. The package uses the same extension UUID and settings as `0.7.1`; existing preferences are retained. Reinstall the `0.7.1` release ZIP and log in again to return to the submitted version.
+Log out and back in to load the updated JavaScript. The package uses the same extension UUID and settings as `0.7.1` and the development preview; existing preferences are retained. The release package checksum and current checks are listed in [validation](VALIDATION.md).

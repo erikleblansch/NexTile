@@ -1,4 +1,4 @@
-# Shexli submission check — NexTile 0.7.1
+# Shexli development check — NexTile 0.7.2
 
 Checked on 5 November 2026 with **Shexli 0.2.1**, rules dated 2026-04-02,
 tree-sitter 0.25.2 and tree-sitter-javascript 0.25.0.
@@ -7,10 +7,10 @@ tree-sitter 0.25.2 and tree-sitter-javascript 0.25.0.
 three errors caused by checker limitations and one manual-review item. This is
 not a claim of zero findings or GNOME approval.
 
-The [complete JSON report](submission/shexli-report.json) is retained. The release
+The [complete JSON report](shexli-report.json) is retained. The release
 also supplies the report and a checksum of the extension ZIP.
 
-Checked ZIP SHA-256: `89acbd00cda1db6d95b1c643a78a6d8ae207b8bcd420bbdf90c1f611d18fc2db`. The local and GitHub Actions builds match.
+Checked ZIP SHA-256: `55b07e07ffc724b93ca97533e49def4705830927e7b895bfae01ea1f40bf263c`.
 
 ## Corrected in 0.7.1
 
@@ -27,10 +27,10 @@ Checked ZIP SHA-256: `89acbd00cda1db6d95b1c643a78a6d8ae207b8bcd420bbdf90c1f611d1
 | EGO-C49-004 | Shexli matches `get_maximized()` without evaluating its feature guard. NexTile prefers `get_maximize_flags()` and only uses the fallback when the newer method is absent. Tests explicitly cover modern zero flags and legacy stubs that throw if called. |
 | EGO-C49-003 | Shexli matches the name `unmaximize` and its flags argument without resolving the import. This is NexTile's compatibility function, which dispatches to `set_unmaximize_flags()` on modern Mutter. |
 | EGO-M-004 | Shexli 0.2.1's metadata rule contains `if major > 50`, so it flags supported GNOME 51. The compatibility matrix retains the versions actually exercised. |
-| EGO-A-005 | Activating a native search result with `clipboardText` copies that text, matching GNOME's native behavior. Metadata and reviewer notes disclose it. No clipboard reads occur. GNOME's reviewer decides whether this use is acceptable. |
+| EGO-A-005 | Activating a native search result with `clipboardText` copies that text, matching GNOME's native behavior. Metadata and reviewer notes disclose it. No clipboard reads occur. This remains a manual-review finding in the analyzer. |
 
 These assessments follow the installed checker's source and NexTile's source;
-they are not exemptions granted by GNOME. See the [reviewer notes](submission/REVIEWER-NOTES.md),
+they are not exemptions granted by GNOME. Publication on extensions.gnome.org is no longer planned. See the [historical reviewer notes](submission/REVIEWER-NOTES.md),
 [validation](VALIDATION.md) and [GNOME review guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html).
 
 ## Reproduce

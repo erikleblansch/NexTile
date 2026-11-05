@@ -1,5 +1,7 @@
 # NexTile 0.7.1 — reviewer notes
 
+> Historical submission notes. Version 0.7.1 was rejected; NexTile is now distributed through GitHub Releases. These notes are retained for reference, not as an active submission or approval claim. See [submission history](../SUBMISSION.md).
+
 NexTile automatically tiles normal, resizable windows by splitting the largest tile along its longest side. It provides draggable shared borders, destination splitting on window drops, and a Quick Settings toggle with a settings submenu. Optional appearance features provide a transparent adaptive panel, numbered workspaces, compact Super-key search and GNOME Terminal transparency.
 
 Source: https://github.com/erikleblansch/NexTile/tree/v0.7.1

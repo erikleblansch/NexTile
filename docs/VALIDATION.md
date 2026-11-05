@@ -1,4 +1,14 @@
-# Validation — NexTile 0.7.1
+# Validation — NexTile 0.7.2
+
+The release integrates the **Always open a new window** feature from `feature/always-new-window`. Production JavaScript, styles and schema are unchanged from the tested development preview; the package version is now `0.7.2`. Distribution is through GitHub Releases, with no GNOME approval claim.
+
+The [feature validation](NEW-WINDOW-LAUNCH.md#validation--2026-11-05) records 157 assertions on each of GNOME 46, 47, 48, 49, 50 and 51 Wayland, and 154 on GNOME 48.7 X11. It covers repeated launches, the Quick Settings switch, single-window applications, ordinary focus and extension disable/re-enable. [Development CI run 42081212922](https://github.com/erikleblansch/NexTile/actions/runs/42081212922) passed all six jobs.
+
+The release package contains **26 files**, including the new launch module and ten compiled translation catalogs. All **26 translatable strings** have complete catalogs, with regional and English fallback checks. Schema, geometry, compatibility, asynchronous terminal behavior, package validation and JavaScript lint remain part of the build checks. Shexli retains the same four documented findings; see the [report and assessment](SHEXLI.md).
+
+Release ZIP SHA-256: `55b07e07ffc724b93ca97533e49def4705830927e7b895bfae01ea1f40bf263c`. The local release build, catalog/package checks, ESLint and Shexli baseline check passed on 5 November 2026.
+
+## Historical validation — NexTile 0.7.1
 
 Tested on **5 November 2026**. [GitHub Actions run 42054860335](https://github.com/erikleblansch/NexTile/actions/runs/42054860335) passed all six jobs for commit `a7c057f`: pure/package/lint and Shexli triage, plus GNOME 46, 47, 49, 50 and 51 Wayland. Each Wayland runtime passed 142 assertions, including native ZIP installation, open-menu cleanup and cancellation across disable/re-enable. GNOME 48.7 was tested locally on Wayland (142 assertions) and X11 (139). The five container logs below are from this CI run. The previous [0.7.0 evidence](https://github.com/erikleblansch/NexTile/blob/v0.7.0/docs/VALIDATION.md) remains available separately.
 

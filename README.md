@@ -13,8 +13,6 @@
 
 No configuration files to learn. Your controls live in Quick Settings.
 
-**Development preview:** this branch contains the optional [new-window launch behavior](docs/NEW-WINDOW-LAUNCH.md) in `0.7.2-dev`. The submitted `0.7.1` release and `main` are unchanged. Build this branch to try the preview; the release download below remains `0.7.1`.
-
 <p align="center">
   <a href="https://erikleblansch.github.io/NexTile/">
     <img src="docs/demo-poster.jpg" alt="Play the NexTile demo in your browser: automatic tiling, draggable boundaries, workspace search and Quick Settings" width="860">
@@ -31,6 +29,7 @@ The video is a real GNOME session with synthetic demo content. The player suppor
 - **Drag to reshape.** Resize adjoining tiles by dragging their shared boundary. Drop a window onto another tile to split that tile; the remaining windows fill the space you leave behind.
 - **A quieter top bar.** Transparent background, a clock on the left, and centered, numbered workspaces. Text changes between black and white to suit the background underneath.
 - **Search without leaving your work.** Super expands the active workspace pill into a search field. Native GNOME app and provider results appear over your desktop, with translucent category cards. Scroll to change workspaces while keeping your query.
+- **Open another window.** Launch a running app again to request a new window. The **Always open a new window** switch controls this behavior in search, the dash and the app grid. [Details](docs/NEW-WINDOW-LAUNCH.md).
 - **Your preferences, close at hand.** One Quick Settings toggle turns tiling on or off. Its arrow opens gaps, split direction, floating windows, top bar, search and terminal controls.
 - **Eleven languages, automatically.** English, Nederlands, Deutsch, Français, Español, Português, Italiano, Polski, 日本語, 简体中文 and Українська follow your GNOME session language. Other languages fall back to English.
 
@@ -102,9 +101,9 @@ NexTile uses a binary split tree and responds to window, monitor and workspace e
 
 GNOME extensions run inside the desktop shell, so compatibility deserves more than a version number in metadata. NexTile includes pure geometry tests and a real compositor test harness for window creation, dragging, search, workspaces and cleanup. See [validation evidence and known limits](docs/VALIDATION.md).
 
-## GNOME Extensions submission
+## Distribution
 
-The repository includes a [submission guide](docs/SUBMISSION.md), listing artwork and reviewer notes. Version `0.7.1` is [awaiting review](https://extensions.gnome.org/review/77910/). This development branch is not part of that submission.
+NexTile is distributed through [GitHub Releases](https://github.com/erikleblansch/NexTile/releases/latest). Install and update it using the ZIP instructions above. Publication on extensions.gnome.org is no longer planned. [Submission history](docs/SUBMISSION.md).
 
 ## Build and contribute
 
