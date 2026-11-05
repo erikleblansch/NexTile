@@ -1,5 +1,6 @@
 PASS: Extension loads and tiler starts
 PASS: Native Quick Settings toggle with menu
+PASS: Warning icon precedes the floating-window switch label
 PASS: Panel is fully transparent
 PASS: Clock and calendar button moved to the left
 PASS: Native dots hidden while numbered ribbon is present
@@ -37,7 +38,7 @@ PASS: Overview provider widgets remain untouched
 PASS: Down selects next application
 PASS: Up selects previous application
 PASS: Search neighbors slide forward without reversing direction between animation frames
-PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x561b2dcb40a0 ClutterText ("nextile search test")], entryFocus=true)
+PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x561bad4c0b40 ClutterText ("nextile search test")], entryFocus=true)
 PASS: Workspace scrolling keeps search centered and moves the other circles around it
 PASS: Search neighbors also slide backward without bouncing
 PASS: Enter launches application and closes search without showing Activities
@@ -83,6 +84,7 @@ PASS: GTK window NexTile late-maximized mapped
 PASS: New late-maximized window opens normally and tiles without a mouse move
 PASS: GTK window NexTile late-restore mapped
 PASS: New late-restore window opens normally and tiles without a mouse move
+PASS: Startup normalization has ended before deliberate maximization
 PASS: User can still maximize a window after startup
 PASS: Unmaximize with a delayed client resize retiles without mouse interaction
 PASS: Restoring a previously maximized, minimized window immediately retiles

@@ -38,7 +38,7 @@ PASS: Overview provider widgets remain untouched
 PASS: Down selects next application
 PASS: Up selects previous application
 PASS: Search neighbors slide forward without reversing direction between animation frames
-PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x5558019edb40 ClutterText ("nextile search test")], entryFocus=true)
+PASS: Real mouse wheel changes workspace while retaining search and focus (workspace=1, open=true, focus=[0x560701e561f0 ClutterText ("nextile search test")], entryFocus=true)
 PASS: Workspace scrolling keeps search centered and moves the other circles around it
 PASS: Search neighbors also slide backward without bouncing
 PASS: Enter launches application and closes search without showing Activities
@@ -126,4 +126,4 @@ PASS: Extension disable destroys UI and all owned resources
 PASS: Disable clears startup tracking and expected window geometry
 PASS: Disable restores native panel and releases panel resources
 PASS: Disable removes search modal, signals and restores Super handler
-PASS: Extension can be enabled again
+PASS: Extension can be enabled againgnome-shell-calendar-server[128]: Lost (or failed to acquire) the name org.gnome.Shell.CalendarServer - exiting

@@ -1,6 +1,6 @@
 # Validation — NexTile 0.7.0
 
-Tested on **5 November 2026**. The final source was exercised in real, isolated GNOME Shell sessions, not only checked against version metadata.
+Tested on **5 November 2026**. [GitHub Actions run 42036517073](https://github.com/erikleblansch/NexTile/actions/runs/42036517073) passed all six jobs for implementation commit `58b6ac4`: pure/package/lint checks and GNOME 46, 47, 49, 50 and 51 Wayland. The Wayland logs linked below for those five versions are from that run; GNOME 48 was tested locally. The final source was exercised in real, isolated GNOME Shell sessions, not only checked against version metadata.
 
 | Check | Result |
 | --- | --- |
@@ -13,9 +13,9 @@ Tested on **5 November 2026**. The final source was exercised in real, isolated 
 | GNOME 47.10 / Wayland | [129 runtime assertions passed](runtime-gnome47.txt), Fedora 41 container |
 | GNOME 48.7 / X11 | [125 runtime assertions passed](runtime-x11.txt) |
 | GNOME 48.7 / Wayland | [129 runtime assertions passed](runtime-wayland.txt), two virtual monitors |
-| GNOME 49.10 / Wayland | CI regression; prior 0.6.0 [127 assertions](runtime-gnome49.txt) on Fedora 43 |
-| GNOME 50.6 / Wayland | CI regression; prior 0.6.0 [127 assertions](runtime-gnome50.txt) on Fedora 44 |
-| GNOME 51.1 / Wayland | CI regression; prior 0.6.0 [127 assertions](runtime-gnome51.txt) on Fedora 45 |
+| GNOME 49.10 / Wayland | [129 runtime assertions passed](runtime-gnome49.txt), Fedora 43 CI container |
+| GNOME 50.6 / Wayland | [129 runtime assertions passed](runtime-gnome50.txt), Fedora 44 CI container |
+| GNOME 51.1 / Wayland | [129 runtime assertions passed](runtime-gnome51.txt), Fedora 45 CI container |
 | Language and terminal-switch UI | [Seven isolated GNOME 48.7 sessions passed](runtime-locales.txt): pt_PT, it_IT, pl_PL, ja_JP, zh_CN, uk_UA, and ko_KR using the English fallback. Existing en/nl/de/fr/es UI checks passed for 0.6.0; all ten catalogs are checked for this release |
 | Final Shell logs | No JavaScript errors, GJS criticals, CSS parsing errors or NexTile search/contrast errors, including compositor shutdown |
 | JavaScript lint | ESLint recommended rules, no warnings |
@@ -52,7 +52,7 @@ Virtual input devices initially appear at the top-left corner. The isolated harn
 - Startup maximization requests are normalized for one second after the first tile placement. A later request is treated as deliberate maximization; Mutter does not identify whether the app or user initiated it.
 - GNOME Terminal transparency requires theme colors and a Terminal restart. Ubuntu's patched Terminal also requires its default Use transparency from system theme setting; its extra CSS property is detected and tested. Console, Ptyxis and Flatpak override configuration are outside this option's scope.
 - An older 0.3 test that forcibly stopped the compositor with search still focused produced GNOME/IBus disposed-widget warnings. This special forced-shutdown case has not been claimed fixed. Normal close, disable during an in-flight query and final shutdown with search closed pass.
-- Earlier 0.5 Wayland tests intermittently missed compositor-only contrast changes. This release found and fixed a startup background-manager subscription gap; the final tests pass on the original 48–51 matrix. This does not establish every possible compositor timing scenario.
+- Earlier 0.5 Wayland tests intermittently missed compositor-only contrast changes. Version 0.6 fixed a startup background-manager subscription gap; the current 46–51 checks include that regression. This does not establish every possible compositor timing scenario.
 - No separate CPU or memory benchmark is claimed. Event-driven behavior and the absence of recurring contrast timers on a stable desktop are tested.
 
 ## Submission preparation
