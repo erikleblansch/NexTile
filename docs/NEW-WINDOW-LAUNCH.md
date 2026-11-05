@@ -21,6 +21,26 @@ The wrapper reads the setting at activation time so cached search-result callbac
 
 The runtime harness includes a real GTK single-instance application with a new-window desktop action and a second fixture marked as single-window only. It checks repeated compact-search launches, both toggle directions after results were created, native app-icon clicks, ordinary focus, explicit new-window gestures, unsupported apps, automatic tiling and disable/re-enable cleanup.
 
+## Validation — 2026-11-05
+
+Tested implementation: [`1095ac7`](https://github.com/erikleblansch/NexTile/commit/1095ac7038ff3e49014f5889aad444f2ec0ba9a6). [Hosted GNOME runtime checks](https://github.com/erikleblansch/NexTile/actions/runs/42081212922).
+
+| Shell | Session | Full runtime result |
+| --- | --- | --- |
+| 46.0 | Wayland, CI | 157 assertions passed |
+| 47.10 | Wayland, CI | 157 assertions passed |
+| 48.7 | Wayland, local isolated compositor | 157 assertions passed |
+| 48.7 | X11, local isolated Xvfb | 154 assertions passed |
+| 49.10 | Wayland, CI | 157 assertions passed |
+| 50.6 | Wayland, CI | 157 assertions passed |
+| 51.1 | Wayland, CI | 157 assertions passed |
+
+The focused launch test also passed all 18 assertions on GNOME 48.7 Wayland. The driver now keeps a single test run when Shell re-enables dependent extensions during the lifecycle checks.
+
+`make pack` and ESLint passed. The package contains 26 files and complete compiled catalogs for all ten translations, with English fallback. Shexli 0.2.1 reports the same four [documented findings](SHEXLI.md) as the submitted version; this change adds no findings and does not imply GNOME approval.
+
+Preview ZIP SHA-256: `87f225a5f92f2f46b50dcb687db52fdacb02cb19c4c5ba2ec1dc4796f00ba106`.
+
 ## Build this branch
 
 ```sh
