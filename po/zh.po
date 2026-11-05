@@ -80,3 +80,7 @@ msgstr "切换到工作区 %d"
 
 msgid "Drag tile boundary"
 msgstr "拖动平铺边界"
+
+#: extension.js
+msgid "Always open a new window"
+msgstr "总是打开新窗口"

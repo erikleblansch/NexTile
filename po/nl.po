@@ -80,3 +80,7 @@ msgstr "Sluit alle GNOME Terminal-vensters en open Terminal opnieuw om de wijzig
 
 msgid "Could not update the terminal style. Check that your GTK configuration is writable and the NexTile CSS markers are intact."
 msgstr "De terminalstijl kon niet worden bijgewerkt. Controleer of je GTK-configuratie schrijfbaar is en de NexTile CSS-markeringen intact zijn."
+
+#: extension.js
+msgid "Always open a new window"
+msgstr "Altijd een nieuw venster openen"

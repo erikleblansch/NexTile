@@ -10,6 +10,11 @@
       <default>true</default>
       <summary>Super opens compact application search</summary>
     </key>
+    <key name="new-window-on-launch" type="b">
+      <default>true</default>
+      <summary>Always open a new window when launching an application</summary>
+      <description>App icons in search, the dash and the app grid request a new window for running applications that support it. Turn off to focus an existing window instead.</description>
+    </key>
     <key name="panel-enabled" type="b">
       <default>true</default>
       <summary>Transparent adaptive panel with centered numbered workspaces</summary>

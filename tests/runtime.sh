@@ -26,6 +26,24 @@ Icon=utilities-terminal
 Terminal=false
 EOF
 done
+for kind in Multi Single; do
+    single=false
+    [ "$kind" != Single ] || single=true
+    cat > "$XDG_DATA_HOME/applications/org.gnome.NexTileLaunch$kind.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=NexTile Window Launch $kind
+Exec=python3 "$repo_dir/tests/launch-fixture.py" $kind
+Icon=utilities-terminal
+StartupWMClass=org.gnome.NexTileLaunch$kind
+X-GNOME-SingleWindow=$single
+Actions=new-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=python3 "$repo_dir/tests/launch-fixture.py" $kind --new-window
+EOF
+done
 export GSETTINGS_BACKEND=keyfile
 mkdir -p "$XDG_CONFIG_HOME/gtk-3.0"
 if [ -n "${NEXTILE_DEMO_ROOT:-}" ]; then

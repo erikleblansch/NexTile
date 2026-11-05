@@ -32,6 +32,6 @@ with zipfile.ZipFile(root / 'dist/nextile@erikleblansch.github.io.shell-extensio
     for lang in ('nl', 'de', 'fr', 'es', 'pt', 'it', 'pl', 'ja', 'zh', 'uk'):
         name = f'locale/{lang}/LC_MESSAGES/{metadata["gettext-domain"]}.mo'
         catalog = gettext.GNUTranslations(io.BytesIO(package.read(name)))
-        assert len(catalog._catalog) == 26, lang
-    assert {'extension.js', 'stylesheet.css', 'nativeSearch.js', 'terminalStyle.js'} <= set(names)
+        assert len(catalog._catalog) == 27, lang
+    assert {'extension.js', 'stylesheet.css', 'nativeSearch.js', 'terminalStyle.js', 'newWindowLaunch.js'} <= set(names)
 print(f'PASS: {len(names)} upload files; metadata, license, schema and ten compiled catalogs')

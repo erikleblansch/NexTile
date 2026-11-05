@@ -80,3 +80,7 @@ msgstr "Przełącz na obszar roboczy %d"
 
 msgid "Drag tile boundary"
 msgstr "Przeciągnij granicę kafelka"
+
+#: extension.js
+msgid "Always open a new window"
+msgstr "Zawsze otwieraj nowe okno"

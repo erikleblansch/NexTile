@@ -80,3 +80,7 @@ msgstr "Passa allo spazio di lavoro %d"
 
 msgid "Drag tile boundary"
 msgstr "Trascina il bordo del riquadro"
+
+#: extension.js
+msgid "Always open a new window"
+msgstr "Apri sempre una nuova finestra"

@@ -9,6 +9,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {ExtensionState} from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import {AppIcon} from 'resource:///org/gnome/shell/ui/appDisplay.js';
 
 // Test the same version adapters used by the installed extension.
 import {maximizeFlags, maximize, unmaximize} from '../nextile@erikleblansch.github.io/compatibility.js';
@@ -46,7 +47,10 @@ const rect = window => {
 
 export default class TestDriver extends Extension {
     enable() {
-        this._run().catch(async error => {
+        // Shell may re-enable later extensions when NexTile's override is
+        // removed during lifecycle tests. Keep the original test run alive;
+        // a second run would race its fixtures and settings.
+        this._runPromise ??= this._run().catch(async error => {
             try {
                 const file = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.failure.png`);
                 const stream = file.replace(null, false, Gio.FileCreateFlags.NONE, null);
@@ -91,6 +95,11 @@ export default class TestDriver extends Extension {
             this._finish(log.join('\n'));
             return;
         }
+        if (GLib.getenv('NEXTILE_TEST_ONLY') === 'launch') {
+            await this._launchTests(ext, assert);
+            this._finish(log.join('\n'));
+            return;
+        }
         if (GLib.getenv('NEXTILE_TEST_ONLY') === 'terminal') {
             const background = new Gio.Settings({schema_id: 'org.gnome.desktop.background'});
             background.set_string('picture-options', 'none');
@@ -104,6 +113,7 @@ export default class TestDriver extends Extension {
             await this._settingsTests(ext, assert);
             await this._panelTests(ext, assert);
             await this._searchTests(ext, assert);
+            await this._launchTests(ext, assert);
             await this._terminalTests(ext, assert);
         }
         const spawn = async (name, mode = null) => {
@@ -743,6 +753,104 @@ export default class TestDriver extends Extension {
         preferences.set_int('num-workspaces', 2);
         mutter.set_boolean('dynamic-workspaces', true);
         await delay(600);
+    }
+
+    async _launchTests(ext, assert) {
+        const settings = ext._settings;
+        const windows = kind => global.get_window_actors().map(actor => actor.meta_window)
+            .filter(window => window.title?.startsWith(`NexTile Launch ${kind} `));
+        const until = async (condition, message) => {
+            for (let attempt = 0; attempt < 100; attempt++) {
+                if (condition())
+                    return;
+                await delay(25);
+            }
+            throw new Error(message);
+        };
+        const result = async kind => {
+            const search = ext._search;
+            search.open();
+            search._entry.set_text(`nextile window launch ${kind}`);
+            const find = () => search._results._rows.find(row => row.id === `org.gnome.NexTileLaunch${kind}.desktop`);
+            await until(find, `Search result for ${kind} appears`);
+            return find().button;
+        };
+        assert(settings.get_boolean('new-window-on-launch') && ext._toggle._newWindowSwitch.state,
+            'New-window launch is enabled by default and shown in Quick Settings');
+        (await result('Multi')).activate();
+        await until(() => windows('Multi').length === 1, 'Stopped app opens its first window');
+        const app = Shell.AppSystem.get_default().lookup_app('org.gnome.NexTileLaunchMulti.desktop');
+        assert(app.state === Shell.AppState.RUNNING && app.can_open_new_window() && app.get_windows().length === 1,
+            'Launch fixture is a tracked running app with new-window support');
+        (await result('Multi')).activate();
+        await until(() => windows('Multi').length === 2, 'Repeated search launch creates another window');
+        assert(!ext._search._open && app.get_windows().length === 2,
+            'Launching a running app from compact search opens a second window and closes search');
+        await delay(300);
+        assert(windows('Multi').every(window => ext._tiler._original.has(window)),
+            'Newly launched windows participate in automatic tiling');
+
+        // Change the preference after the result captured its activation method.
+        const existing = await result('Multi');
+        ext._toggle._newWindowSwitch.emit('toggled', false);
+        existing.activate();
+        await delay(450);
+        assert(!settings.get_boolean('new-window-on-launch') && !ext._toggle._newWindowSwitch.state && windows('Multi').length === 2,
+            'Turning the switch off immediately affects already displayed search results');
+        const next = await result('Multi');
+        ext._toggle._newWindowSwitch.emit('toggled', true);
+        next.activate();
+        await until(() => windows('Multi').length === 3, 'Re-enabled search launch creates a window');
+        assert(ext._toggle._newWindowSwitch.state && !ext._search._open,
+            'Turning the switch back on immediately affects already displayed search results');
+
+        // The dash, app grid and native application search all use AppIcon.
+        const icon = new AppIcon(app, {isDraggable: false});
+        Main.uiGroup.add_child(icon);
+        icon.emit('clicked', Clutter.BUTTON_PRIMARY);
+        await until(() => windows('Multi').length === 4, 'Native app icon opens an extra window');
+        assert(app.get_windows().length === 4, 'Native GNOME app-icon click also requests a new window');
+        app.activate();
+        await delay(450);
+        assert(windows('Multi').length === 4, 'Ordinary app focusing still focuses without creating windows');
+        settings.set_boolean('new-window-on-launch', false);
+        icon.activate(Clutter.BUTTON_PRIMARY);
+        await delay(450);
+        assert(windows('Multi').length === 4, 'Disabled policy restores normal app-icon activation');
+        icon.activate(Clutter.BUTTON_MIDDLE);
+        await until(() => windows('Multi').length === 5, 'Explicit middle-click still opens a new window');
+        assert(windows('Multi').length === 5, 'Disabled policy preserves explicit GNOME new-window gestures');
+        settings.set_boolean('new-window-on-launch', true);
+
+        (await result('Single')).activate();
+        await until(() => windows('Single').length === 1, 'Single-window fixture opens');
+        const single = Shell.AppSystem.get_default().lookup_app('org.gnome.NexTileLaunchSingle.desktop');
+        assert(single.state === Shell.AppState.RUNNING && !single.can_open_new_window(),
+            'Single-window fixture advertises that extra windows are unsupported');
+        (await result('Single')).activate();
+        await delay(450);
+        assert(windows('Single').length === 1 && !ext._search._open,
+            'Single-window apps activate normally without duplicate windows');
+
+        const injected = AppIcon.prototype.activate;
+        await setExtensionEnabled(false);
+        assert(AppIcon.prototype.activate !== injected && !ext._newWindowLauncher,
+            'Extension disable removes the app-icon override');
+        icon.activate();
+        injected.call(icon);
+        await delay(450);
+        assert(windows('Multi').length === 5,
+            'Native and retained activation callbacks restore normal behavior after disable');
+        await setExtensionEnabled(true);
+        await ext._terminalTask;
+        icon.activate();
+        await until(() => windows('Multi').length === 6, 'Re-enabled extension creates new windows again');
+        assert(windows('Multi').length === 6, 'Re-enabling installs exactly one working launch override');
+        icon.destroy();
+        for (const window of [...windows('Multi'), ...windows('Single')])
+            window.delete(global.get_current_time());
+        await until(() => windows('Multi').length === 0 && windows('Single').length === 0, 'Launch fixtures close');
+        await delay(300);
     }
 
     async _settingsTests(ext, assert) {

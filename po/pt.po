@@ -80,3 +80,7 @@ msgstr "Mudar para a área de trabalho %d"
 
 msgid "Drag tile boundary"
 msgstr "Arraste o limite do mosaico"
+
+#: extension.js
+msgid "Always open a new window"
+msgstr "Abrir sempre uma nova janela"

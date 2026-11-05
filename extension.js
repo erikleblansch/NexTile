@@ -12,6 +12,7 @@ import {Tiler} from './tiler.js';
 import {PanelAppearance} from './panel.js';
 import {CompactSearch} from './compactSearch.js';
 import {TerminalStyle} from './terminalStyle.js';
+import {NewWindowLaunch} from './newWindowLaunch.js';
 
 const NexTileToggle = GObject.registerClass(
 class NexTileToggle extends QuickSettings.QuickMenuToggle {
@@ -53,6 +54,9 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this._searchSwitch = new PopupMenu.PopupSwitchMenuItem(_('Super opens search'), true);
         this._searchSwitch.connect('toggled', (_item, state) => settings.set_boolean('search-enabled', state));
         this.menu.addMenuItem(this._searchSwitch);
+        this._newWindowSwitch = new PopupMenu.PopupSwitchMenuItem(_('Always open a new window'), true);
+        this._newWindowSwitch.connect('toggled', (_item, state) => settings.set_boolean('new-window-on-launch', state));
+        this.menu.addMenuItem(this._newWindowSwitch);
         this._terminalSwitch = new PopupMenu.PopupSwitchMenuItem(_('Transparent terminal'), false);
         this._terminalSwitch.connect('toggled', (_item, state) => settings.set_boolean('terminal-transparent', state));
         this.menu.addMenuItem(this._terminalSwitch);
@@ -83,6 +87,7 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
         this._restore.setToggleState(this._settings.get_boolean('restore-on-disable'));
         this._panelSwitch.setToggleState(this._settings.get_boolean('panel-enabled'));
         this._searchSwitch.setToggleState(this._settings.get_boolean('search-enabled'));
+        this._newWindowSwitch.setToggleState(this._settings.get_boolean('new-window-on-launch'));
         this._terminalSwitch.setToggleState(this._settings.get_boolean('terminal-transparent'));
         this._float.setToggleState(this._tiler.isFloating(this._focus));
         this._float.setSensitive(enabled && !!this._focus &&
@@ -140,6 +145,7 @@ class NexTileToggle extends QuickSettings.QuickMenuToggle {
 export default class NexTileExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
+        this._newWindowLauncher = new NewWindowLaunch(this._settings);
         this._terminal = new TerminalStyle(this.dir.get_child('extras').get_child('terminal-transparency.css'));
         this._terminalRequest = 0;
         this._tiler = new Tiler(this._settings);
@@ -244,6 +250,8 @@ export default class NexTileExtension extends Extension {
 
     disable() {
         this._settings?.disconnect(this._settingsId);
+        this._newWindowLauncher?.destroy();
+        this._newWindowLauncher = null;
         this._terminal?.destroy();
         this._terminal = null;
         this._terminalTask = null;

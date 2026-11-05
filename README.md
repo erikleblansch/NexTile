@@ -13,6 +13,8 @@
 
 No configuration files to learn. Your controls live in Quick Settings.
 
+**Development preview:** this branch contains the optional [new-window launch behavior](docs/NEW-WINDOW-LAUNCH.md) in `0.7.2-dev`. The submitted `0.7.1` release and `main` are unchanged. Build this branch to try the preview; the release download below remains `0.7.1`.
+
 <p align="center">
   <a href="https://erikleblansch.github.io/NexTile/">
     <img src="docs/demo-poster.jpg" alt="Play the NexTile demo in your browser: automatic tiling, draggable boundaries, workspace search and Quick Settings" width="860">
@@ -74,6 +76,7 @@ If you enabled terminal transparency, turn **Transparent terminal** off before u
 | Restore windows when tiling is off | Restore saved sizes and positions on disable |
 | Transparent top bar | Enable the adaptive panel and numbered workspace ribbon |
 | Super opens search | Replace the usual Super overview with in-panel search |
+| Always open a new window | Launch another window from search, the dash or app grid; enabled by default |
 | Transparent terminal | Enable a 50% background for **GNOME Terminal (GTK 3)** |
 
 **Terminal transparency:** close all GNOME Terminal windows and reopen Terminal after changing the switch. In the Terminal profile, enable **Use colors from system theme**. On Ubuntu versions offering **Use transparency from system theme**, leave that option enabled too. NexTile detects that Terminal variant automatically. The text stays fully opaque. NexTile adds a marked block to `~/.config/gtk-3.0/gtk.css`, preserves your other CSS and creates a backup before each change. Existing transparency from NexTile 0.5 is detected on upgrade. This option does not configure Console, Ptyxis, other terminals or Flatpak sandbox overrides. [Manual removal helper](tools/configure-terminal.py): `python3 tools/configure-terminal.py --remove`.
@@ -101,7 +104,7 @@ GNOME extensions run inside the desktop shell, so compatibility deserves more th
 
 ## GNOME Extensions submission
 
-The repository includes a [submission guide](docs/SUBMISSION.md), listing artwork and reviewer notes. NexTile is prepared for review, but has not yet been submitted to or approved by extensions.gnome.org.
+The repository includes a [submission guide](docs/SUBMISSION.md), listing artwork and reviewer notes. Version `0.7.1` is [awaiting review](https://extensions.gnome.org/review/77910/). This development branch is not part of that submission.
 
 ## Build and contribute
 
