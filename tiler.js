@@ -8,6 +8,7 @@ import {TileBorders} from './tileBorders.js';
 import {maximizeFlags, maximize, unmaximize} from './compatibility.js';
 
 const STARTUP_SETTLE_US = 1000000;
+const DISPLAY_SETTLE_MS = 300;
 
 export class Tiler {
     constructor(settings) {
@@ -17,7 +18,7 @@ export class Tiler {
         this._windows = new Map();
         this._groups = new Map();
         this._original = new Map();
-        this._floating = new Set();
+        this._floating = new Map();
         this._maximized = new Set();
         this._opening = new Map();
         this._targets = new Map();
@@ -44,10 +45,8 @@ export class Tiler {
         });
         for (const signal of ['workareas-changed', 'window-entered-monitor', 'window-left-monitor'])
             connect(global.display, signal, () => this.queue());
-        connect(Main.layoutManager, 'monitors-changed', () => {
-            this._groups.clear();
-            this.queue();
-        });
+        connect(Main.layoutManager, 'monitors-changed', () => this.queue(true));
+        connect(global.backend.get_monitor_manager(), 'power-save-mode-changed', () => this.queue(true));
         connect(global.workspace_manager, 'active-workspace-changed', () => this.queue());
         connect(this._mutterSettings, 'changed::workspaces-only-on-primary', () => {
             this._groups.clear();
@@ -140,11 +139,21 @@ export class Tiler {
         return false;
     }
 
-    queue() {
-        if (!this._running || this._source)
+    queue(displayChanged = false) {
+        if (!this._running || (this._source && !displayChanged))
             return;
-        // Coalesce bursts of map/workspace/monitor notifications; never poll.
-        this._source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 40, () => {
+        if (displayChanged) {
+            if (this._source)
+                GLib.Source.remove(this._source);
+            if (this._settleSource)
+                GLib.Source.remove(this._settleSource);
+            this._settleSource = 0;
+            for (const [window, reason] of this._floating) {
+                if (reason === 'size')
+                    this._floating.delete(window);
+            }
+        }
+        this._source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, displayChanged ? DISPLAY_SETTLE_MS : 40, () => {
             this._source = 0;
             if (!this._grabbing || this._resizeGrab) {
                 try {
@@ -165,7 +174,7 @@ export class Tiler {
             // a resizable app. Admit it so startup can actually unmaximize it.
             !window.minimized && !window.fullscreen &&
             (window.allows_resize() || (maximizeFlags(window) && window.resizeable)) &&
-            window.allows_move() && window.get_compositor_private()?.visible &&
+            window.allows_move() && window.mapped &&
             !this._floating.has(window) && !this._maximized.has(window);
     }
 
@@ -197,6 +206,8 @@ export class Tiler {
     }
 
     _reconcile() {
+        if (!Main.layoutManager.monitors.length)
+            return;
         const desired = new Map();
         for (const window of this._windows.keys()) {
             if (this._eligible(window)) {
@@ -226,7 +237,7 @@ export class Tiler {
             if ([...group.layout.rectangles(this._area(group), gap).values()]
                 .some(rect => rect.width < 120 || rect.height < 80)) {
                 group.layout.remove(window);
-                this._floating.add(window);
+                this._floating.set(window, 'size');
                 this._restore(window);
             }
         }
@@ -289,7 +300,7 @@ export class Tiler {
                         this.queue();
                         return GLib.SOURCE_REMOVE;
                     }
-                    this._floating.add(window);
+                    this._floating.set(window, 'size');
                     this._restore(window);
                     changed = true;
                 }
@@ -438,7 +449,7 @@ export class Tiler {
         if (this._floating.delete(window)) {
             this._maximized.delete(window);
         } else {
-            this._floating.add(window);
+            this._floating.set(window, 'manual');
             this._restore(window);
         }
         this.queue();

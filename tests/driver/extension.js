@@ -134,6 +134,9 @@ export default class TestDriver extends Extension {
         const a2 = rect(a);
         const b2 = rect(b);
         assert(a2.width + b2.width + 24 === area.width, 'Second window halves largest tile');
+        await this._layoutRecoveryTests(ext._tiler, [a, b], spawn, assert);
+        ext._tiler.retile();
+        await delay(600);
         const c = await spawn('NexTile C');
         assert(rect(a).height + rect(c).height + 24 === area.height, 'Third window splits longest side');
         assert(JSON.stringify(rect(b)) === JSON.stringify(b2), 'Unrelated tile remains stable');
@@ -387,6 +390,92 @@ export default class TestDriver extends Extension {
             b.delete(global.get_current_time());
         }
         this._finish(log.join('\n'));
+    }
+
+    async _layoutRecoveryTests(tiler, [a, b], spawn, assert) {
+        a.minimize();
+        await delay(400);
+        a.unminimize();
+        await delay(600);
+        assert(rect(b).x < rect(a).x, 'Recovery fixture has the second window on the left');
+        const frames = () => JSON.stringify([rect(a), rect(b)]);
+        const before = frames();
+        const capture = async name => {
+            const stream = Gio.File.new_for_path(`${GLib.getenv('NEXTILE_TEST_RESULT')}.${name}.png`)
+                .replace(null, false, Gio.FileCreateFlags.NONE, null);
+            await new Promise((resolve, reject) => new Shell.Screenshot().screenshot(false, stream, (source, result) => {
+                try {
+                    source.screenshot_finish(result);
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            }));
+            stream.close(null);
+        };
+        await capture('layout-before');
+
+        const workspace = a.get_workspace();
+        const other = global.workspace_manager.get_workspace_by_index(workspace.index() + 1);
+        other.activate(global.get_current_time());
+        await delay(500);
+        const offWorkspace = await spawn('NexTile on the other workspace');
+        assert(offWorkspace.get_workspace() === other, 'New window opens on the other workspace');
+        workspace.activate(global.get_current_time());
+        await delay(800);
+        await capture('layout-after-workspace');
+        assert(frames() === before, `Tiles retain their positions after a workspace round trip (before=${before}, after=${frames()})`);
+        offWorkspace.delete(global.get_current_time());
+
+        if (Meta.is_wayland_compositor() && Main.layoutManager.monitors.length === 2) {
+            const name = 'org.gnome.Mutter.DisplayConfig';
+            const path = '/org/gnome/Mutter/DisplayConfig';
+            const call = (method, parameters = null) => new Promise((resolve, reject) => Gio.DBus.session.call(
+                name, path, name, method, parameters, null, Gio.DBusCallFlags.NONE, 5000, null, (bus, result) => {
+                    try {
+                        resolve(bus.call_finish(result).deepUnpack());
+                    } catch (error) {
+                        reject(error);
+                    }
+                }));
+            const [, monitors, logicalMonitors, properties] = await call('GetCurrentState');
+            const config = logicalMonitors.map(([x, y, scale, transform, primary, specs]) =>
+                [x, y, scale, transform, primary, specs.map(([connector]) => {
+                    const [, modes] = monitors.find(([spec]) => spec[0] === connector);
+                    const [mode] = modes.find(entry => entry[6]['is-current']?.unpack());
+                    return [connector, mode, {}];
+                })]);
+            const apply = async outputs => {
+                const [configSerial] = await call('GetCurrentState');
+                await call('ApplyMonitorsConfig',
+                    new GLib.Variant('(uua(iiduba(ssa{sv}))a{sv})', [configSerial, 1, outputs,
+                        {'layout-mode': properties['layout-mode']}]));
+                await delay(800);
+            };
+            const primaryOnly = config.filter(output => output[4]);
+            await apply(primaryOnly);
+            assert(Main.layoutManager.monitors.length === 1, 'Mutter disables a virtual output');
+            await apply(config);
+            assert(Main.layoutManager.monitors.length === 2, 'Mutter re-enables the virtual output');
+            await capture('layout-after-monitor');
+            assert(frames() === before, `Tiles retain their positions after a monitor reconnects (before=${before}, after=${frames()})`);
+
+            await apply(primaryOnly);
+            const constrained = await spawn('NexTile monitor minimum size', 'minimum');
+            const original = JSON.stringify(rect(constrained));
+            await apply(primaryOnly.map(([x, y, scale, , primary, outputs]) => [x, y, scale, 1, primary, outputs]));
+            assert(tiler.isFloating(constrained), 'Minimum-size window temporarily floats in the narrower work area');
+            await apply(primaryOnly);
+            await capture('layout-after-wider-monitor');
+            assert(!tiler.isFloating(constrained) && JSON.stringify(rect(constrained)) === original,
+                `Temporarily floated window returns to its tile when the wider work area returns (before=${original}, after=${JSON.stringify(rect(constrained))}, floating=${tiler.isFloating(constrained)})`);
+            constrained.delete(global.get_current_time());
+            await apply(config);
+            for (const window of [a, b]) {
+                if (!window.is_on_primary_monitor())
+                    window.move_to_monitor(Main.layoutManager.primaryIndex);
+            }
+        }
     }
 
     async _borderTests(ext, a, b, assert) {
