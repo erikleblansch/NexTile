@@ -427,7 +427,7 @@ export default class TestDriver extends Extension {
         assert(frames() === before, `Tiles retain their positions after a workspace round trip (before=${before}, after=${frames()})`);
         offWorkspace.delete(global.get_current_time());
 
-        if (Meta.is_wayland_compositor() && Main.layoutManager.monitors.length === 2) {
+        if (GLib.getenv('NEXTILE_TEST_BACKEND') === 'wayland' && Main.layoutManager.monitors.length === 2) {
             const name = 'org.gnome.Mutter.DisplayConfig';
             const path = '/org/gnome/Mutter/DisplayConfig';
             const call = (method, parameters = null) => new Promise((resolve, reject) => Gio.DBus.session.call(
@@ -438,7 +438,7 @@ export default class TestDriver extends Extension {
                         reject(error);
                     }
                 }));
-            const [, monitors, logicalMonitors, properties] = await call('GetCurrentState');
+            const [, monitors, logicalMonitors] = await call('GetCurrentState');
             const config = logicalMonitors.map(([x, y, scale, transform, primary, specs]) =>
                 [x, y, scale, transform, primary, specs.map(([connector]) => {
                     const [, modes] = monitors.find(([spec]) => spec[0] === connector);
@@ -448,8 +448,7 @@ export default class TestDriver extends Extension {
             const apply = async outputs => {
                 const [configSerial] = await call('GetCurrentState');
                 await call('ApplyMonitorsConfig',
-                    new GLib.Variant('(uua(iiduba(ssa{sv}))a{sv})', [configSerial, 1, outputs,
-                        {'layout-mode': properties['layout-mode']}]));
+                    new GLib.Variant('(uua(iiduba(ssa{sv}))a{sv})', [configSerial, 1, outputs, {}]));
                 await delay(800);
             };
             const primaryOnly = config.filter(output => output[4]);
@@ -876,8 +875,8 @@ export default class TestDriver extends Extension {
         await until(() => windows('Multi').length === 2, 'Repeated search launch creates another window');
         assert(!ext._search._open && app.get_windows().length === 2,
             'Launching a running app from compact search opens a second window and closes search');
-        await delay(300);
-        assert(windows('Multi').every(window => ext._tiler._original.has(window)),
+        await until(() => windows('Multi').length === 2 &&
+            windows('Multi').every(window => ext._tiler._original.has(window)),
             'Newly launched windows participate in automatic tiling');
 
         // Change the preference after the result captured its activation method.

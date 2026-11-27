@@ -174,7 +174,8 @@ export class Tiler {
             // a resizable app. Admit it so startup can actually unmaximize it.
             !window.minimized && !window.fullscreen &&
             (window.allows_resize() || (maximizeFlags(window) && window.resizeable)) &&
-            window.allows_move() && window.mapped &&
+            window.allows_move() &&
+            (window.get_compositor_private()?.visible || (this._original.has(window) && window.mapped)) &&
             !this._floating.has(window) && !this._maximized.has(window);
     }
 
