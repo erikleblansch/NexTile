@@ -175,7 +175,8 @@ export class Tiler {
             !window.minimized && !window.fullscreen &&
             (window.allows_resize() || (maximizeFlags(window) && window.resizeable)) &&
             window.allows_move() &&
-            (window.get_compositor_private()?.visible || (this._original.has(window) && window.mapped)) &&
+            (window.get_compositor_private()?.visible ||
+                (this._original.has(window) && window.showing_on_its_workspace())) &&
             !this._floating.has(window) && !this._maximized.has(window);
     }
 
